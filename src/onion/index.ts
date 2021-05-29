@@ -3,8 +3,8 @@ import { IHttpClient } from "../network";
 import { PlainObject } from "../types";
 
 export type UtilData = {
-    http: IHttpClient
-    logger: ILogger
+    http?: IHttpClient
+    logger?: ILogger
 } & PlainObject
 
 export type NextMiddleware<TMiddleware extends OnionMiddleware<any>> = {

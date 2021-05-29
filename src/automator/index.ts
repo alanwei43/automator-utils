@@ -1,22 +1,19 @@
 import { PlainObject, PlainObjectGeneric } from "../types";
 
-export type CommanderType = {
-    jobId: string
-} & PlainObjectGeneric<Array<string>>
-
 export type YamlConfig = {
     name: string
     actions: Array<YamlActionConfig>
-} & PlainObject
+} & PlainObjectGeneric<Array<YamlActionConfig>>
 
 export type YamlActionConfig = {
     name: string,
-    steps: Array<string | YamlActionStepConfig>
-} & PlainObject
+    steps: Array<YamlActionStepConfig | string>
+} & PlainObjectGeneric<Array<YamlActionStepConfig | string>>
 
 export type YamlActionStepConfig = {
-    name: string
+    id: string
 } & PlainObject
 
 
 export * from "./StepMiddleware";
+export * from "./Automator";

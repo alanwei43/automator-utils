@@ -1,4 +1,4 @@
-import { FileCache } from "../src/cache/FileCache";
+import { FileCache } from "../../src/cache/FileCache";
 
 test("文件缓存 正常写入读取", async () => {
     const cache = new FileCache("logs");

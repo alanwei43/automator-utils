@@ -1,5 +1,5 @@
-import { NextMiddleware, OnionMiddleware, UtilData } from "../onion";
-import { CommanderType, YamlActionConfig, YamlActionStepConfig, YamlConfig } from "./index";
+import { NextMiddleware, OnionMiddleware, UtilData, PlainObject } from "../index";
+import { YamlActionConfig, YamlActionStepConfig, YamlConfig } from "./index";
 
 export type StepMiddlewareUtil = {} & UtilData
 
@@ -7,7 +7,7 @@ export type StepMiddlewareCtor = {
     config: YamlConfig
     action: YamlActionConfig
     step: YamlActionStepConfig
-    cmd: CommanderType
+    cmd: PlainObject
 }
 
 export abstract class StepMiddleware implements OnionMiddleware<StepMiddlewareUtil> {

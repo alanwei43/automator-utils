@@ -1,3 +1,7 @@
 export interface StringMap { [key: string]: string }
-export type PlainObjectGeneric<T> = { [key: string]: string | number | boolean | T | PlainObjectGeneric<T> }
-export type PlainObject = PlainObjectGeneric<null>
+export type PlainObject = {
+    [key: string]: string | number | boolean
+}
+export type PlainObjectGeneric<T> = {
+    [key: string]: string | number | boolean | T
+}

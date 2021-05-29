@@ -1,10 +1,9 @@
 import fs from "fs";
 import path from "path";
-import { OnionCompose } from "src/onion";
-import { readYamlConfig } from "../utils";
-import { YamlConfig, YamlActionStepConfig, StepMiddleware, StepMiddlewareCtor, CommanderType, StepMiddlewareUtil } from "./index";
+import { OnionCompose, readYamlConfig } from "../index";
+import { YamlConfig, YamlActionStepConfig, StepMiddleware, StepMiddlewareCtor, StepMiddlewareUtil } from "./index";
 
-type OnionComposeGetter = (cmd: StepMiddlewareCtor["cmd"], utils?: StepMiddlewareUtil) => OnionCompose<StepMiddlewareUtil, StepMiddleware>
+type OnionComposeGetter = (cmd: any, utils?: StepMiddlewareUtil) => OnionCompose<StepMiddlewareUtil, StepMiddleware>
 
 export type AutomatorCtor = {
     /**
@@ -43,7 +42,12 @@ export class Automator {
                 .forEach(info => {
                     if (info.stat.isFile() && (info.extName === ".js" || info.extName === ".ts")) {
                         const modules = require(info.fullPath);
-                        const moduleRelDir = path.relative(root, path.dirname(info.fullPath));
+                        const moduleRelDir = path.relative(root, path.dirname(info.fullPath))
+                            .replace(/\\/g, "/") // 兼容Windows系统路径分隔符
+                            .split("/")
+                            .filter(p => p.length > 0) // 保证第一和最后一个字符不是 /
+                            .join("/");
+
                         if (modules && typeof modules === "object") {
                             Object.keys(modules)
                                 .map(key => modules[key])
@@ -53,7 +57,7 @@ export class Automator {
                                     ctor: mod
                                 }))
                                 .forEach(mod => {
-                                    self.MiddlewareModules.set(`${moduleRelDir}/${mod.name}`, mod.ctor)
+                                    self.MiddlewareModules.set(self.getModuleId(info.fullPath, mod.name), mod.ctor)
                                 });
                         }
                     }
@@ -63,25 +67,38 @@ export class Automator {
                 });
         })(root);
     }
+    private getModuleId(moduleFullPath: string, moduleName: string): string {
+        const moduleRelDir = path.relative(this._ctor.modulesRootDir, path.dirname(moduleFullPath));
+        const moduleTempId = `${moduleRelDir}/${moduleName}`;
+        const moduleId = moduleTempId.replace(/\\/g, "/") // 兼容Windows系统路径分隔符
+            .split("/")
+            .filter(p => p.length > 0) // 保证第一和最后一个字符不是 /
+            .join("/");
 
-    public async getActions(configFilePath: string): Promise<Map<string, OnionComposeGetter>> {
+        return "/" + moduleId;
+    }
+
+    public async getActionsByFile(configFilePath: string): Promise<Map<string, OnionComposeGetter>> {
         const config = readYamlConfig<YamlConfig>(configFilePath);
         if (!config) {
             console.log(`配置文件${configFilePath}读取失败`);
-            return;
+            return Promise.resolve(null);
         }
+        return this.getActions(config);
+    }
 
+    public async getActions(config: YamlConfig): Promise<Map<string, OnionComposeGetter>> {
         const modules: Map<string, OnionComposeGetter> = new Map();
         for (let action of config.actions) {
-            modules.set(action.name, (cmd: CommanderType, utils: StepMiddlewareUtil) => {
+            modules.set(action.name, (cmd: any, utils: StepMiddlewareUtil) => {
                 const compose = new OnionCompose<StepMiddlewareUtil, StepMiddleware>(utils);
 
                 for (let stepNameOrObj of action.steps) {
-                    const step: YamlActionStepConfig = typeof stepNameOrObj === "string" ? { name: stepNameOrObj } : stepNameOrObj;
+                    const step: YamlActionStepConfig = typeof stepNameOrObj === "string" ? { id: stepNameOrObj } : stepNameOrObj;
 
-                    const mw = this.MiddlewareModules.get(step.name);
+                    const mw = this.MiddlewareModules.get(step.id);
                     if (!mw) {
-                        console.warn(`[${config.name} ${action.name}] 中间件 ${step.name} 不存在`);
+                        console.warn(`[${config.name} ${action.name}] 中间件 ${step.id} 不存在`);
                         continue;
                     }
 
@@ -89,7 +106,7 @@ export class Automator {
                         config: config,
                         action: action,
                         step: step,
-                        cmd: cmd || { jobId: null }
+                        cmd: cmd
                     };
                     const instance: StepMiddleware = Reflect.construct(mw, [ctor]);
 
