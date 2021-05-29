@@ -1,0 +1,6 @@
+name: jack
+actions:
+  - name: action-1
+    steps:
+      - id: /RootModule
+      - "/share/ShareModule"

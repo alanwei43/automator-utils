@@ -16,3 +16,8 @@
 
 * src/onion 洋葱模型实现
 * src/automator 基于yaml文件的自动化执行
+
+
+## 开发
+
+为了方便debug单元测试，可以安装VSC扩展工具[kavod-io.vscode-jest-test-adapter](https://marketplace.visualstudio.com/items?itemName=kavod-io.vscode-jest-test-adapter)。
