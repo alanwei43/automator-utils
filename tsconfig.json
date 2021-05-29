@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "importHelpers": true,
+        "removeComments": false,
+        "target": "ES2015",
+        "sourceMap": true,
+        "allowJs": false,
+        "esModuleInterop": true,
+        "moduleResolution": "Node",
+        "baseUrl": "./",
+        "resolveJsonModule": true,
+        "outDir": "dist/",
+        "declaration": true,
+        "declarationDir": "types"
+    },
+    "include": [
+        "src/**/*",
+    ],
+}

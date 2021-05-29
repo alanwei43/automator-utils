@@ -1,0 +1,15 @@
+{
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "node_modules": true,
+    "data/caches": true,
+    "data/chrome": true
+    // "src/**/*.d.ts": true,
+    // "src/**/*.js": true,
+    // "src/types/whistle-extend.d.ts": false
+  },
+}

@@ -1,0 +1,49 @@
+{
+  "name": "update-and-executor",
+  "version": "1.0.0",
+  "description": "动态更新代码，并根据配置文件以洋葱模型执行。",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alanwei43/update-and-executor.git"
+  },
+  "keywords": [
+    "http",
+    "network",
+    "util"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alanwei43/update-and-executor/issues"
+  },
+  "homepage": "https://github.com/alanwei43/update-and-executor#readme",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.9",
+    "http-proxy-agent": "^4.0.1",
+    "https-proxy-agent": "^5.0.0",
+    "js-yaml": "^4.1.0",
+    "node-fetch": "^2.6.1",
+    "socks5-http-client": "^1.0.4",
+    "socks5-https-client": "^1.2.1"
+  },
+  "devDependencies": {
+    "@msgpack/msgpack": "^2.7.0",
+    "@types/cheerio": "^0.22.29",
+    "@types/js-yaml": "^4.0.1",
+    "@types/node": "^15.6.1",
+    "@types/node-fetch": "^2.5.10",
+    "ts-node": "^10.0.0",
+    "tslib": "^2.2.0",
+    "typescript": "^4.3.2"
+  },
+  "publishConfig": {},
+  "files": [
+    "dist/"
+  ],
+  "types": "dist/index.d.ts"
+}
