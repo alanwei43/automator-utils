@@ -16,17 +16,19 @@ export class OnionCompose<TUtil, TMiddleware extends OnionMiddleware<TUtil>> {
         this.middlewares.push(middleware);
     }
 
-    run() {
+    run(...args) {
         //ref https://zhuanlan.zhihu.com/p/45837799
         const self = this;
         return (async function dispatch(index, middlewares, utils, transferArgs) {
             if (self.canceled) {
-                return Promise.resolve("cancel");
+                // 取消执行
+                return Promise.resolve();
             }
 
             if (index === middlewares.length) {
                 self.finished = true;
-                return Promise.resolve("end");
+                // 最后一个中间件
+                return Promise.resolve();
             }
             const mw = middlewares[index];
             const next: NextMiddleware<TMiddleware> = function (...args) {
@@ -40,7 +42,7 @@ export class OnionCompose<TUtil, TMiddleware extends OnionMiddleware<TUtil>> {
 
             const result = await mw.execute.apply(mw, [next, utils, ...(transferArgs || [])]);
             return Promise.resolve(result);
-        })(0, this.middlewares, self.utils, []);
+        })(0, this.middlewares, self.utils, args);
     }
 
     cancel() {

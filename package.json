@@ -4,7 +4,7 @@
   "description": "动态更新代码，并根据配置文件以洋葱模型执行。",
   "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "build": "tsc"
   },
   "repository": {
@@ -34,9 +34,12 @@
   "devDependencies": {
     "@msgpack/msgpack": "^2.7.0",
     "@types/cheerio": "^0.22.29",
+    "@types/jest": "^26.0.23",
     "@types/js-yaml": "^4.0.1",
     "@types/node": "^15.6.1",
     "@types/node-fetch": "^2.5.10",
+    "jest": "^27.0.2",
+    "ts-jest": "^27.0.1",
     "ts-node": "^10.0.0",
     "tslib": "^2.2.0",
     "typescript": "^4.3.2"

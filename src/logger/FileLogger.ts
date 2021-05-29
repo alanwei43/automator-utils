@@ -43,7 +43,12 @@ export class FileLogger implements ILogger {
     getLogFilePath(level: LogLevel) {
         return path.join(this.dir, `${this.name}.${level}.log`);
     }
-    readLines<T>(filePath: string): Array<T> {
+    parseLines<T>(level: LogLevel): Array<T> {
+        const filePath = this.getLogFilePath(level);
+        return FileLogger.parseFileLines<T>(filePath);
+    }
+
+    static parseFileLines<T>(filePath: string): Array<T> {
         const fileStat = fs.statSync(filePath);
         if (!fileStat || !fileStat.isFile()) {
             console.log(`${filePath} 文件不存在`);
