@@ -10,3 +10,4 @@ pkg.publishConfig = {
 fs.writeFileSync("package.json", JSON.stringify(pkg), {
     encoding: "utf-8"
 });
+console.log("repalced npm registry");
