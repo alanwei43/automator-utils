@@ -9,7 +9,7 @@ export type AutomatorCtor = {
     /**
      * 模块根目录
      */
-    modulesRootDir: string
+    modulesRootDir: Array<string>
 }
 export class Automator {
     private readonly MiddlewareModules: Map<string, () => StepMiddleware>
@@ -17,11 +17,10 @@ export class Automator {
     constructor(ctor: AutomatorCtor) {
         this.MiddlewareModules = new Map();
         this._ctor = ctor;
-        this.initDirModules();
+        this.refreshModules();
     }
 
-    private initDirModules() {
-        const root = this._ctor.modulesRootDir;
+    private initDirModules(root: string) {
         if (!root || !fs.existsSync(root)) {
             this.MiddlewareModules.clear();
             return;
@@ -57,7 +56,7 @@ export class Automator {
                                     ctor: mod
                                 }))
                                 .forEach(mod => {
-                                    self.MiddlewareModules.set(self.getModuleId(info.fullPath, mod.name), mod.ctor)
+                                    self.MiddlewareModules.set(self.getModuleId(root, info.fullPath, mod.name), mod.ctor)
                                 });
                         }
                     }
@@ -67,8 +66,13 @@ export class Automator {
                 });
         })(root);
     }
-    private getModuleId(moduleFullPath: string, moduleName: string): string {
-        const moduleRelDir = path.relative(this._ctor.modulesRootDir, path.dirname(moduleFullPath));
+    public refreshModules() {
+        for (let dir of this._ctor.modulesRootDir) {
+            this.initDirModules(dir);
+        }
+    }
+    private getModuleId(rootDir: string, moduleFullPath: string, moduleName: string): string {
+        const moduleRelDir = path.relative(rootDir, path.dirname(moduleFullPath));
         const moduleTempId = `${moduleRelDir}/${moduleName}`;
         const moduleId = moduleTempId.replace(/\\/g, "/") // 兼容Windows系统路径分隔符
             .split("/")
