@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-export function copy(from: string, to: string, filter: (fullPath: string) => boolean) {
+export function copyFile(from: string, to: string, filter: (fullPath: string) => boolean) {
     (function recursive(dir, dest) {
         fs.readdirSync(dir)
             .map(name => ({
@@ -11,7 +11,7 @@ export function copy(from: string, to: string, filter: (fullPath: string) => boo
             }))
             .forEach(info => {
                 if (info.stat.isDirectory()) {
-                    copy(info.fullPath, info.destPath, filter);
+                    copyFile(info.fullPath, info.destPath, filter);
                     return;
                 }
                 if (filter(info.fullPath)) {
