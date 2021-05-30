@@ -1,16 +1,13 @@
 {
   "name": "automator-utils",
-  "version": "0.0.2-beta7",
+  "version": "0.0.2-beta8",
   "description": "动态更新代码，并根据配置文件以洋葱模型执行。",
   "main": "dist/index.js",
   "scripts": {
     "test": "jest",
     "build": "tsc"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/alanwei43/update-and-executor.git"
-  },
+  "repository":  "git://github.com/alanwei43/automator-utils.git",
   "keywords": [
     "http",
     "network",
@@ -19,9 +16,9 @@
   "author": "Alan Wei",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/alanwei43/update-and-executor/issues"
+    "url": "https://github.com/alanwei43/automator-utils/issues"
   },
-  "homepage": "https://github.com/alanwei43/update-and-executor#readme",
+  "homepage": "https://github.com/alanwei43/automator-utils#readme",
   "dependencies": {
     "cheerio": "^1.0.0-rc.9",
     "http-proxy-agent": "^4.0.1",

@@ -11,4 +11,9 @@ pkg.publishConfig = {
 fs.writeFileSync("package.json", JSON.stringify(pkg), {
     encoding: "utf-8"
 });
+fs.writeFileSync(".npmrc", `
+@alanwei43:registry=https://npm.pkg.github.com
+`, {
+    encoding: "utf-8"
+});
 console.log("repalced npm registry");
