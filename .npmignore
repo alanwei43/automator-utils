@@ -1,0 +1,7 @@
+.github/
+.vscode/
+logs/
+src/
+tasks/
+install.sh
+jest.config.ts
