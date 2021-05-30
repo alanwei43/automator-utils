@@ -17,3 +17,8 @@ export function readYamlConfig<T>(configFile: string): T {
     const config: any = yaml.load(fileContent);
     return config;
 }
+
+export function parseYamlConfig<T>(yamlContent: string): T {
+    const config: any = yaml.load(yamlContent);
+    return config;
+}

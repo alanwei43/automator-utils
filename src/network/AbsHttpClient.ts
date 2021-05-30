@@ -2,6 +2,9 @@ import { PlainObject, StringMap } from "../types";
 import { IHttpClient, encodeParams, FetchConfig } from './index';
 import cheerio from "cheerio";
 import { ILogger } from '../logger';
+import fs from "fs";
+import path from "path";
+import { promisify } from "util";
 
 export abstract class AbsHttpClient implements IHttpClient {
     protected readonly logger: ILogger
@@ -175,5 +178,21 @@ return ${text};
             html: html
         };
     }
-
+    async saveAs(url: string, dest: string): Promise<boolean> {
+        const buffer = await this.request({
+            url: url,
+            method: "GET"
+        });
+        if (!buffer) {
+            return false;
+        }
+        const dir = path.dirname(dest);
+        if (!fs.existsSync(dir)) {
+            await promisify(fs.mkdir)(dir, {
+                recursive: true
+            });
+        }
+        await promisify(fs.writeFile)(dest, buffer);
+        return true;
+    }
 }

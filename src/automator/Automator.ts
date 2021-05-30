@@ -13,10 +13,8 @@ export type AutomatorCtor = {
 }
 export class Automator {
     private readonly MiddlewareModules: Map<string, () => StepMiddleware>
-    private readonly _ctor: AutomatorCtor
-    constructor(ctor: AutomatorCtor) {
+    constructor(private ctor: AutomatorCtor) {
         this.MiddlewareModules = new Map();
-        this._ctor = ctor;
         this.refreshModules();
     }
 
@@ -67,7 +65,7 @@ export class Automator {
         })(root);
     }
     public refreshModules() {
-        for (let dir of this._ctor.modulesRootDir) {
+        for (let dir of this.ctor.modulesRootDir) {
             this.initDirModules(dir);
         }
     }

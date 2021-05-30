@@ -32,6 +32,7 @@ export interface IHttpClient {
     getJsonp<T>(url: string, params: StringMap, callbackParamName: string, callbackParamValue?: string, headers?: StringMap): Promise<T>
     postFormData<T>(url: string, params?: StringMap, body?: StringMap, headers?: StringMap): Promise<T>
     parseHtml(url: string): Promise<{ $: cheerio.Root, html: string }>
+    saveAs(url: string, dest: string): Promise<boolean>
 }
 
 export function encodeParams(params: StringMap): string {

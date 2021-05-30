@@ -1,5 +1,5 @@
 {
-  "name": "update-and-executor",
+  "name": "automator-utils",
   "version": "1.0.0",
   "description": "动态更新代码，并根据配置文件以洋葱模型执行。",
   "main": "dist/index.js",
