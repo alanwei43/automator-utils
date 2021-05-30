@@ -14,7 +14,7 @@ export abstract class AbsHttpClient implements IHttpClient {
 
     abstract request(config: FetchConfig): Promise<Buffer>
 
-    async getJson<T>(url: string, params?: StringMap, headers?: StringMap): Promise<T> {
+    async getJson<T>(url: string, params?: PlainObject, headers?: StringMap): Promise<T> {
         let reqUrl = url;
         if (params) {
             reqUrl += "?" + encodeParams(params);
@@ -44,7 +44,7 @@ export abstract class AbsHttpClient implements IHttpClient {
         }
         return null;
     }
-    async postJson<T>(url: string, params?: StringMap, body?: PlainObject, headers?: StringMap): Promise<T> {
+    async postJson<T>(url: string, params?: PlainObject, body?: any, headers?: StringMap): Promise<T> {
         let reqUrl = url;
         if (params) {
             reqUrl += "?" + encodeParams(params);
@@ -77,7 +77,7 @@ export abstract class AbsHttpClient implements IHttpClient {
         return null;
     }
 
-    async getText(url: string, params?: StringMap, headers?: StringMap): Promise<string> {
+    async getText(url: string, params?: PlainObject, headers?: StringMap): Promise<string> {
         let reqUrl = url;
         if (params) {
             reqUrl += "?" + encodeParams(params);
@@ -93,7 +93,7 @@ export abstract class AbsHttpClient implements IHttpClient {
         }
         return response.toString("utf-8");
     }
-    async getJsonp<T>(url: string, params: StringMap, callbackParamName: string, callbackParamValue?: string, headers?: StringMap): Promise<T> {
+    async getJsonp<T>(url: string, params: PlainObject, callbackParamName: string, callbackParamValue?: string, headers?: StringMap): Promise<T> {
         let reqUrl = url;
         if (!params) {
             params = {};
@@ -130,7 +130,7 @@ return ${text};
         }
     }
 
-    async postFormData<T>(url: string, params?: StringMap, body?: StringMap, headers?: StringMap): Promise<T> {
+    async postFormData<T>(url: string, params?: PlainObject, body?: PlainObject, headers?: StringMap): Promise<T> {
         let reqUrl = url;
         if (params) {
             reqUrl += "?" + encodeParams(params);

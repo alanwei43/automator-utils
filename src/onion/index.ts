@@ -17,3 +17,4 @@ export interface OnionMiddleware<TUtil> {
 }
 
 export * from "./OnionCompose";
+export * from "./OnionComposeSimple";
