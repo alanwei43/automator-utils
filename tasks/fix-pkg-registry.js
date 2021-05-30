@@ -4,6 +4,7 @@ if (fs.existsSync(".npmrc")) {
     fs.unlink(".npmrc");
 }
 const pkg = JSON.parse(fs.readFileSync("package.json", { encoding: "utf-8" }));
+pkg.name = "@alanwei43/" + pkg.name;
 pkg.publishConfig = {
     "registry": "https://npm.pkg.github.com/@alanwei43"
 };
