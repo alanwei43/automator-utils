@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { OnionCompose, readYamlConfig } from "../index";
-import { YamlConfig, YamlActionStepConfig, StepMiddleware, StepMiddlewareCtor, StepMiddlewareUtil } from "./index";
+import { AutomatorConfig, AutomatorStepConfig, StepMiddleware, StepMiddlewareCtor, StepMiddlewareUtil } from "./index";
 
 type OnionComposeGetter = (cmd: any, utils?: StepMiddlewareUtil) => OnionCompose<StepMiddlewareUtil, StepMiddleware>
 
@@ -39,11 +39,6 @@ export class Automator {
                 .forEach(info => {
                     if (info.stat.isFile() && (info.extName === ".js" || info.extName === ".ts")) {
                         const modules = require(info.fullPath);
-                        const moduleRelDir = path.relative(root, path.dirname(info.fullPath))
-                            .replace(/\\/g, "/") // 兼容Windows系统路径分隔符
-                            .split("/")
-                            .filter(p => p.length > 0) // 保证第一和最后一个字符不是 /
-                            .join("/");
 
                         if (modules && typeof modules === "object") {
                             Object.keys(modules)
@@ -54,7 +49,8 @@ export class Automator {
                                     ctor: mod
                                 }))
                                 .forEach(mod => {
-                                    self.MiddlewareModules.set(self.getModuleId(root, info.fullPath, mod.name), mod.ctor)
+                                    const moduleId = self.getModuleId(root, info.fullPath, mod.name);
+                                    self.MiddlewareModules.set(moduleId, mod.ctor)
                                 });
                         }
                     }
@@ -80,33 +76,39 @@ export class Automator {
         return "/" + moduleId;
     }
 
-    public async getActionsByFile(configFilePath: string): Promise<Map<string, OnionComposeGetter>> {
-        const config = readYamlConfig<YamlConfig>(configFilePath);
+    public async getJobsByFile(configFilePath: string): Promise<Map<string, OnionComposeGetter>> {
+        const config = readYamlConfig<AutomatorConfig>(configFilePath);
         if (!config) {
             console.log(`配置文件${configFilePath}读取失败`);
             return Promise.resolve(null);
         }
-        return this.getActions(config);
+        return this.getJobs(config);
     }
 
-    public async getActions(config: YamlConfig): Promise<Map<string, OnionComposeGetter>> {
+    public async getJobs(config: AutomatorConfig): Promise<Map<string, OnionComposeGetter>> {
         const modules: Map<string, OnionComposeGetter> = new Map();
-        for (let action of config.actions) {
-            modules.set(action.name, (cmd: any, utils: StepMiddlewareUtil) => {
+        if (!Array.isArray(config.jobs)) {
+            throw new Error(`[config: ${config.name}] jobs 必须是数组`);
+        }
+        for (let job of config.jobs) {
+            modules.set(job.name, (cmd: any, utils: StepMiddlewareUtil) => {
                 const compose = new OnionCompose<StepMiddlewareUtil, StepMiddleware>(utils);
 
-                for (let stepNameOrObj of action.steps) {
-                    const step: YamlActionStepConfig = typeof stepNameOrObj === "string" ? { id: stepNameOrObj } : stepNameOrObj;
+                if (!Array.isArray(job.steps)) {
+                    throw new Error(`[config: ${config.name}, job: ${job.name}] steps 必须是数组`);
+                }
+                for (let stepNameOrObj of job.steps) {
+                    const step: AutomatorStepConfig = typeof stepNameOrObj === "string" ? { id: stepNameOrObj } : stepNameOrObj;
 
                     const mw = this.MiddlewareModules.get(step.id);
                     if (!mw) {
-                        console.warn(`[${config.name} ${action.name}] 中间件 ${step.id} 不存在`);
+                        console.warn(`[${config.name} ${job.name}] step ${step.id} 不存在`);
                         continue;
                     }
 
                     const ctor: StepMiddlewareCtor = {
                         config: config,
-                        action: action,
+                        job: job,
                         step: step,
                         cmd: cmd
                     };

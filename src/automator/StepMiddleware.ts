@@ -1,12 +1,12 @@
 import { NextMiddleware, OnionMiddleware, UtilData, PlainObject } from "../index";
-import { YamlActionConfig, YamlActionStepConfig, YamlConfig } from "./index";
+import { AutomatorJobConfig, AutomatorStepConfig, AutomatorConfig } from "./index";
 
 export type StepMiddlewareUtil = {} & UtilData
 
 export type StepMiddlewareCtor = {
-    config: YamlConfig
-    action: YamlActionConfig
-    step: YamlActionStepConfig
+    config: AutomatorConfig
+    job: AutomatorJobConfig
+    step: AutomatorStepConfig
     cmd: PlainObject
 }
 

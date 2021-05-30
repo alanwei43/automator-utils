@@ -1,5 +1,5 @@
 name: jack
-actions:
+jobs:
   - name: action-1
     steps:
       - id: /RootModule

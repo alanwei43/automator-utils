@@ -1,5 +1,5 @@
 import path from "path";
-import { YamlConfig, Automator, YamlActionConfig } from "../../src/index";
+import { AutomatorConfig, Automator, AutomatorJobConfig } from "../../src/index";
 
 test("自动化脚本 基于代码配置", async () => {
     const auto = new Automator({
@@ -8,15 +8,15 @@ test("自动化脚本 基于代码配置", async () => {
     const steps = [{
         "id": "/RootModule",
     }, "/share/ShareModule"];
-    const actions: YamlActionConfig = {
+    const job: AutomatorJobConfig = {
         "name": "action-1",
         "steps": steps
     };
-    const config: YamlConfig = {
+    const config: AutomatorConfig = {
         "name": "jack",
-        "actions": [actions]
+        "jobs": [job]
     };
-    const all = await auto.getActions(config);
+    const all = await auto.getJobs(config);
     const action = all.get("action-1");
     const compose = await action({
         map: (letter: string) => letter.toUpperCase()
@@ -30,7 +30,7 @@ test("自动化脚本 基于配置文件", async () => {
     const auto = new Automator({
         "modulesRootDir": [path.join(__dirname, "modules")]
     });
-    const all = await auto.getActionsByFile(path.join(__dirname, "modules", "config.yml"));
+    const all = await auto.getJobsByFile(path.join(__dirname, "modules", "config.yml"));
     const action = all.get("action-1");
     const compose = await action({
         map: (letter: string) => letter.toUpperCase()

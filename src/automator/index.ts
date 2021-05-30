@@ -1,16 +1,16 @@
 import { PlainObject, PlainObjectGeneric } from "../types";
 
-export type YamlConfig = {
+export type AutomatorConfig = {
     name: string
-    actions: Array<YamlActionConfig>
-} & PlainObjectGeneric<string | number | boolean | Array<YamlActionConfig>>
+    jobs: Array<AutomatorJobConfig>
+} & PlainObjectGeneric<string | number | boolean | Array<AutomatorJobConfig>>
 
-export type YamlActionConfig = {
+export type AutomatorJobConfig = {
     name: string,
-    steps: Array<YamlActionStepConfig | string>
-} & PlainObjectGeneric<string | number | boolean | Array<YamlActionStepConfig | string>>
+    steps: Array<AutomatorStepConfig | string>
+} & PlainObjectGeneric<string | number | boolean | Array<AutomatorStepConfig | string>>
 
-export type YamlActionStepConfig = {
+export type AutomatorStepConfig = {
     id: string
 } & PlainObject
 
