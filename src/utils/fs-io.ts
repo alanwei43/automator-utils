@@ -1,7 +1,13 @@
 import fs from "fs";
 import path from "path";
 
-export function copyFile(from: string, to: string, filter: (fullPath: string) => boolean) {
+/**
+ * 拷贝文件
+ * @param from 源目录
+ * @param to 目标目录
+ * @param filter 过滤
+ */
+export function copyFiles(from: string, to: string, filter: (fullPath: string) => boolean) {
     (function recursive(dir, dest) {
         fs.readdirSync(dir)
             .map(name => ({
@@ -11,11 +17,10 @@ export function copyFile(from: string, to: string, filter: (fullPath: string) =>
             }))
             .forEach(info => {
                 if (info.stat.isDirectory()) {
-                    copyFile(info.fullPath, info.destPath, filter);
+                    copyFiles(info.fullPath, info.destPath, filter);
                     return;
                 }
                 if (filter(info.fullPath)) {
-                    console.log(`拷贝文件: ${info.fullPath} -> ${info.destPath}`);
                     const destDir = path.dirname(info.destPath);
                     if (!fs.existsSync(destDir)) {
                         fs.mkdirSync(destDir, {
