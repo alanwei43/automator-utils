@@ -32,6 +32,7 @@ jobs:
           node-version: 12
           registry-url: https://npm.pkg.github.com/
           scope: '@alanwei43'
+      - run: rm -rf .npmrc
       - run: npm ci
       - run: npm run build
       - run: npm publish
