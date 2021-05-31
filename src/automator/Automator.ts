@@ -12,15 +12,18 @@ export type AutomatorCtor = {
     modulesRootDir: Array<string>
 }
 export class Automator {
-    private readonly MiddlewareModules: Map<string, () => StepMiddleware>
+    private readonly _middlewareModules: Map<string, () => StepMiddleware>
+    private readonly _middlewareRequirePaths: Set<string>
+
     constructor(private ctor: AutomatorCtor) {
-        this.MiddlewareModules = new Map();
+        this._middlewareModules = new Map();
+        this._middlewareRequirePaths = new Set();
         this.refreshModules();
     }
 
     private initDirModules(root: string) {
         if (!root || !fs.existsSync(root)) {
-            this.MiddlewareModules.clear();
+            this._middlewareModules.clear();
             return;
         }
 
@@ -41,6 +44,8 @@ export class Automator {
                         const modules = require(info.fullPath);
 
                         if (modules && typeof modules === "object") {
+                            self._middlewareRequirePaths.add(info.fullPath);
+
                             Object.keys(modules)
                                 .map(key => modules[key])
                                 .filter(m => typeof m === "function" && typeof m.name === "string" && m.name.length)
@@ -50,7 +55,7 @@ export class Automator {
                                 }))
                                 .forEach(mod => {
                                     const moduleId = self.getModuleId(root, info.fullPath, mod.name);
-                                    self.MiddlewareModules.set(moduleId, mod.ctor)
+                                    self._middlewareModules.set(moduleId, mod.ctor)
                                 });
                         }
                     }
@@ -61,6 +66,9 @@ export class Automator {
         })(root);
     }
     public refreshModules() {
+        for (let p of this._middlewareRequirePaths) {
+            delete require.cache[p];
+        }
         for (let dir of this.ctor.modulesRootDir) {
             this.initDirModules(dir);
         }
@@ -100,7 +108,7 @@ export class Automator {
                 for (let stepNameOrObj of job.steps) {
                     const step: AutomatorStepConfig = typeof stepNameOrObj === "string" ? { id: stepNameOrObj } : stepNameOrObj;
 
-                    const mw = this.MiddlewareModules.get(step.id);
+                    const mw = this._middlewareModules.get(step.id);
                     if (!mw) {
                         console.warn(`[${config.name} ${job.name}] step ${step.id} 不存在`);
                         continue;
