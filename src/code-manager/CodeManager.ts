@@ -50,7 +50,6 @@ export class CodeManager {
         for (let file of manifest.files) {
             const fileFullPath = path.join(dest, file.dir, file.name);
             await this.http.saveAs(file.url, fileFullPath);
-            delete require.cache[fileFullPath];
         }
         return true;
     }
