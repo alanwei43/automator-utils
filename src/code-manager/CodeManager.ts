@@ -23,6 +23,7 @@ type CodeManifest = {
     rootDir: string
     files: Array<{
         url: string
+        name: string
         dir: string
     }>
 }
@@ -47,7 +48,7 @@ export class CodeManager {
         }
         const dest = path.join(process.cwd(), manifest.rootDir);
         for (let file of manifest.files) {
-            const fileFullPath = path.join(dest, file.dir);
+            const fileFullPath = path.join(dest, file.dir, file.name);
             await this.http.saveAs(file.url, fileFullPath);
             delete require.cache[fileFullPath];
         }
