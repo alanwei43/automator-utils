@@ -35,7 +35,7 @@ export class HttpClient extends AbsHttpClient {
     }
     async request(config: FetchConfig): Promise<Buffer> {
         const key = [config.method, config.url, config.body].filter(part => typeof part === "string").join(",");
-
+        this.logger.debug(`cache key: ${key}`);
         if (config.disableCache !== true) {
             const data = await this.globalConfig.cache.getCache(key);
             if (data && data.length) {
@@ -58,12 +58,16 @@ export class HttpClient extends AbsHttpClient {
                 config.headers[key] = this.globalConfig.defaultHeaders[key];
             }
         }
-        await wait(this.globalConfig.waitMsPerRequest || 0);
+        const waitTime = this.globalConfig.waitMsPerRequest || 0;
+        this.logger.debug(`等待 ${waitTime}ms`);
+        await wait(waitTime);
+        this.logger.debug(`发起请求前处理`);
         await this.onRequestBefore(config);
         try {
+            this.logger.debug(`开始发起请求: ${config.url}`);
             const response = await fetch(config.url, config);
             const buf = await response.buffer();
-            this.logger.debug(`实时请求: ${config.url}, 响应长度: ${buf && buf.length}`);
+            this.logger.debug(`响应长度: ${buf && buf.length}`);
             if (buf && buf.length) {
                 this.globalConfig.cache.updateCache(key, buf);
             } else {
@@ -72,6 +76,7 @@ export class HttpClient extends AbsHttpClient {
             return buf;
         } catch (err) {
             const rc = typeof config.retryCount === "number" ? config.retryCount : this.globalConfig.maxRetryCount;
+            this.logger.debug(`响应异常: ${err && err.message ? err.message : err}, 剩余重试次数: ${rc}`);
             await this.onRequestError(err, rc);
 
             if (typeof rc === "number" && rc > 0) {
