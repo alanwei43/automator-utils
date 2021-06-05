@@ -21,6 +21,7 @@ import path from "path";
 
 type ResourceManifest = {
     rootDir: string
+    baseUrl?: string
     files: Array<{
         url: string
         name: string
@@ -49,7 +50,7 @@ export class ResourceDownloader {
         const dest = path.join(process.cwd(), manifest.rootDir);
         for (let file of manifest.files) {
             const fileFullPath = path.join(dest, file.dir, file.name);
-            await this.http.saveAs(file.url, fileFullPath);
+            await this.http.saveAs(`${manifest.baseUrl || ""}${file.url}`, fileFullPath);
         }
         return true;
     }
