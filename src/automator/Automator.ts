@@ -100,8 +100,8 @@ export class Automator {
     public async getJobsByFile(configFilePath: string): Promise<Map<string, OnionComposeGetter>> {
         const config = readYamlConfig<AutomatorConfig>(configFilePath);
         if (!config) {
-            console.log(`配置文件${configFilePath}读取失败`);
-            return Promise.resolve(null);
+            this.ctor.logger.error(`配置文件${configFilePath}读取失败`);
+            return Promise.reject(new Error(`配置文件${configFilePath}读取失败`));
         }
         return this.getJobs(config);
     }
@@ -111,13 +111,16 @@ export class Automator {
         if (!Array.isArray(config.jobs)) {
             throw new Error(`[config: ${config.name}] jobs 必须是数组`);
         }
+        this.ctor.logger.debug(`根据配置组装job, 配置为: ${JSON.stringify(config)}`);
         for (let job of config.jobs) {
+            this.ctor.logger.debug(`设置job: ${job.name}`);
             modules.set(job.name, (cmd: any, utils: StepMiddlewareUtil) => {
                 const compose = new OnionCompose<StepMiddlewareUtil, StepMiddleware>(utils);
 
                 if (!Array.isArray(job.steps)) {
                     throw new Error(`[config: ${config.name}, job: ${job.name}] steps 必须是数组`);
                 }
+                this.ctor.logger.debug(`循环step`);
                 for (let stepNameOrObj of job.steps) {
                     const step: AutomatorStepConfig = typeof stepNameOrObj === "string" ? { id: stepNameOrObj } : stepNameOrObj;
 
@@ -135,6 +138,7 @@ export class Automator {
                     };
                     const instance: StepMiddleware = Reflect.construct(mw, [ctor]);
 
+                    this.ctor.logger.debug(`添加job的step为到中间件`);
                     compose.use(instance);
                 }
                 return compose;
