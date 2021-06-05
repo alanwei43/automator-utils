@@ -28,7 +28,7 @@ export class OnionCompose<TUtil, TMiddleware extends OnionMiddleware<TUtil>> {
             if (index === middlewares.length) {
                 self.finished = true;
                 // 最后一个中间件
-                return Promise.resolve();
+                return Promise.resolve(transferArgs);
             }
             const mw = middlewares[index];
             const next: NextMiddleware<TMiddleware> = function (...args) {
