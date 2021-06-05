@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { ILogger } from "src/logger";
-import { OnionCompose, readYamlConfig } from "../index";
+import { OnionCompose, readYamlConfig, ILogger } from "../index";
 import { AutomatorConfig, AutomatorStepConfig, StepMiddleware, StepMiddlewareCtor, StepMiddlewareUtil } from "./index";
 
 type OnionComposeGetter = (cmd: any, utils?: StepMiddlewareUtil) => OnionCompose<StepMiddlewareUtil, StepMiddleware>
