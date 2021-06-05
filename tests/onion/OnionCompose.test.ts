@@ -54,7 +54,7 @@ test("洋葱模型 所有中间件顺序执行", async () => {
         }
     });
     const result = await com.run();
-    expect(result).toBe(`m1:m2:m3:undefined`);
+    expect(result).toBe(`m1:m2:m3:`);
     expect(count).toBe(3);
 });
 
@@ -87,7 +87,7 @@ test(`洋葱模型 修改util正确传递`, async () => {
         }
     });
     const result = await com.run();
-    expect(result).toBe(`m1:m2:m3:undefined`);
+    expect(result).toBe(`m1:m2:m3:`);
     expect(u.length).toBe(3);
     expect(u[0]).toBe(`{}`);
     expect(u[1]).toBe(`{"m1":1}`);
@@ -128,7 +128,7 @@ test(`洋葱模型 重置util`, async () => {
         }
     });
     const result = await com.run();
-    expect(result).toBe(`m1:m2:m3:undefined`);
+    expect(result).toBe(`m1:m2:m3:`);
     expect(u.length).toBe(3);
     expect(u[0]).toBe(`{"origin":"hello"}`);
     expect(u[1]).toBe(`{"new":"m1"}`);
