@@ -2,7 +2,7 @@
 /**
  * manifest.yml:
  *  rootDir: "code-dir"
- *  codes:
+ *  files:
  *      - url: https://xxxx.js
  *        dir: share/
  *      - url: https://xxx.js
@@ -19,7 +19,7 @@ import { parseYamlConfig } from "../utils";
 import { IHttpClient } from "../network";
 import path from "path";
 
-type CodeManifest = {
+type ResourceManifest = {
     rootDir: string
     files: Array<{
         url: string
@@ -28,7 +28,7 @@ type CodeManifest = {
     }>
 }
 
-export class CodeManager {
+export class ResourceDownloader {
     constructor(
         private http: IHttpClient,
         private manifestUrl: string,
@@ -36,9 +36,9 @@ export class CodeManager {
     ) { }
     async update(): Promise<boolean> {
         const manifestContent = await this.http.getText(this.manifestUrl);
-        let manifest: CodeManifest;
+        let manifest: ResourceManifest;
         if (this.manifestFormat === "yml") {
-            manifest = parseYamlConfig<CodeManifest>(manifestContent);
+            manifest = parseYamlConfig<ResourceManifest>(manifestContent);
         }
         if (this.manifestFormat === "json") {
             manifest = JSON.parse(manifestContent);
