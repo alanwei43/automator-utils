@@ -8,5 +8,4 @@ test("测试build", () => {
     });
     const output = std.toString("utf-8");
     fs.writeFileSync("output.log", output);
-    console.log(output);
 })

@@ -1,9 +1,13 @@
 import path from "path";
-import { AutomatorConfig, Automator, AutomatorJobConfig } from "../../src/index";
+import { AutomatorConfig, Automator, AutomatorJobConfig, ConsoleLogger, ILogger, NullLogger, FileLogger } from "../../src/index";
+
+const logger: ILogger = new FileLogger("automator-test");
 
 test("自动化脚本 基于代码配置", async () => {
     const auto = new Automator({
-        "modulesRootDir": [path.join(__dirname, "modules")]
+        "modulesRootDir": [path.join(__dirname, "modules")],
+        "moduleFilter": f => f.endsWith(".js") || f.endsWith(".ts"),
+        "logger": logger
     });
     const steps = [{
         "id": "/RootModule",
@@ -28,7 +32,9 @@ test("自动化脚本 基于代码配置", async () => {
 
 test("自动化脚本 基于配置文件", async () => {
     const auto = new Automator({
-        "modulesRootDir": [path.join(__dirname, "modules")]
+        "modulesRootDir": [path.join(__dirname, "modules")],
+        "moduleFilter": f => f.endsWith(".js") || f.endsWith(".ts"),
+        "logger": logger
     });
     const all = await auto.getJobsByFile(path.join(__dirname, "modules", "config.yml"));
     const action = all.get("action-1");

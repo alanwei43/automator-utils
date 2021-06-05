@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { ILogger } from "src/logger";
 import { OnionCompose, readYamlConfig } from "../index";
 import { AutomatorConfig, AutomatorStepConfig, StepMiddleware, StepMiddlewareCtor, StepMiddlewareUtil } from "./index";
 
@@ -10,6 +11,11 @@ export type AutomatorCtor = {
      * 模块根目录
      */
     modulesRootDir: Array<string>
+    /**
+     * 模块文件过滤
+     */
+    moduleFilter?: (fileName: string) => boolean
+    logger: ILogger
 }
 export class Automator {
     private readonly _middlewareModules: Map<string, () => StepMiddleware>
@@ -23,12 +29,15 @@ export class Automator {
 
     private initDirModules(root: string) {
         if (!root || !fs.existsSync(root)) {
+            this.ctor.logger.warn(`${root} 目录不存在`);
             this._middlewareModules.clear();
             return;
         }
 
+        const filterModule = this.ctor.moduleFilter || (f => f.endsWith(".js"));
         const self = this;
         (function recursive(dir) {
+            self.ctor.logger.debug(`读取 ${dir} 目录下文件`);
             fs.readdirSync(dir)
                 .map(child => ({
                     name: child,
@@ -40,10 +49,13 @@ export class Automator {
                     stat: fs.statSync(info.fullPath)
                 }))
                 .forEach(info => {
-                    if (info.stat.isFile() && (info.extName === ".js" || info.extName === ".ts")) {
+                    self.ctor.logger.debug(`文件/目录路径 ${info.fullPath}`);
+                    if (info.stat.isFile() && filterModule(info.fullPath)) {
+                        self.ctor.logger.debug(`执行require`);
                         const modules = require(info.fullPath);
 
                         if (modules && typeof modules === "object") {
+                            self.ctor.logger.debug(`导出对象为object类型`);
                             self._middlewareRequirePaths.add(info.fullPath);
 
                             Object.keys(modules)
@@ -55,6 +67,7 @@ export class Automator {
                                 }))
                                 .forEach(mod => {
                                     const moduleId = self.getModuleId(root, info.fullPath, mod.name);
+                                    self.ctor.logger.debug(`读取到模块: ${mod.name}, id 为: ${moduleId}`);
                                     self._middlewareModules.set(moduleId, mod.ctor)
                                 });
                         }
@@ -63,7 +76,7 @@ export class Automator {
                         recursive(info.fullPath);
                     }
                 });
-        })(root);
+        }).bind(this)(root);
     }
     public refreshModules() {
         for (let p of this._middlewareRequirePaths) {
