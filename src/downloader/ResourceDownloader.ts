@@ -35,22 +35,27 @@ export class ResourceDownloader {
         private manifestUrl: string,
         private manifestFormat: "yml" | "json"
     ) { }
+    /**
+     * 更新资源
+     */
     async update(): Promise<boolean> {
         const manifestContent = await this.http.getText(this.manifestUrl);
-        let manifest: ResourceManifest;
+        let manifestList: Array<ResourceManifest>;
         if (this.manifestFormat === "yml") {
-            manifest = parseYamlConfig<ResourceManifest>(manifestContent);
+            manifestList = parseYamlConfig<Array<ResourceManifest>>(manifestContent);
         }
         if (this.manifestFormat === "json") {
-            manifest = JSON.parse(manifestContent);
+            manifestList = JSON.parse(manifestContent);
         }
-        if (!manifest || !manifest.rootDir) {
-            return false;
-        }
-        const dest = path.join(process.cwd(), manifest.rootDir);
-        for (let file of manifest.files) {
-            const fileFullPath = path.join(dest, file.dir, file.name);
-            await this.http.saveAs(`${manifest.baseUrl || ""}${file.url}`, fileFullPath);
+        for (let manifest of manifestList) {
+            if (!manifest || !manifest.rootDir) {
+                continue;
+            }
+            const dest = path.join(process.cwd(), manifest.rootDir);
+            for (let file of manifest.files) {
+                const fileFullPath = path.join(dest, file.dir, file.name);
+                await this.http.saveAs(`${manifest.baseUrl || ""}${file.url}`, fileFullPath);
+            }
         }
         return true;
     }
