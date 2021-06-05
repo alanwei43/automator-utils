@@ -6,22 +6,14 @@ import * as Socks5Https from "socks5-https-client/lib/Agent";
 import * as Socks5Http from "socks5-http-client/lib/Agent";
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { HttpProxyAgent } from 'http-proxy-agent';
+import { IProxyAgentManager } from "./index"
 
-export type ProxyAgentManager = {
-    getProxyAgent(reqUrl: string): Promise<ProxyAgentResult>
-    onRequestError(error: any, retryCount: number): Promise<void>
-}
-export type ProxyAgentResult = {
-    host: string
-    port: number
-    type: "sock5" | "http"
-}
 export type HttpProxyInit = {
-    ProxyManager: ProxyAgentManager
+    ProxyManager: IProxyAgentManager
 } & HttpClientInit
 
 export class HttpProxyClient extends HttpClient {
-    private _proxyManager: ProxyAgentManager
+    private _proxyManager: IProxyAgentManager
 
     constructor(init: HttpProxyInit) {
         super(init);
