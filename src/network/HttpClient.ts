@@ -33,39 +33,39 @@ export class HttpClient extends AbsHttpClient {
             ...init,
         };
     }
-    async request(config: FetchConfig): Promise<Buffer> {
-        const key = [config.method, config.url, config.body].filter(part => typeof part === "string").join(",");
+    async request(reqConfig: FetchConfig): Promise<Buffer> {
+        const key = [reqConfig.method, reqConfig.url, reqConfig.body].filter(part => typeof part === "string").join(",");
         this.logger.debug(`cache key: ${key}`);
-        if (config.disableCache !== true) {
+        if (reqConfig.disableCache !== true) {
             const data = await this.globalConfig.cache.getCache(key);
             if (data && data.length) {
-                this.logger.debug(`使用缓存: ${config.url}`);
+                this.logger.debug(`使用缓存: ${reqConfig.url}`);
                 return data;
             }
         }
-        if (!config.headers) {
-            config.headers = {};
+        if (!reqConfig.headers) {
+            reqConfig.headers = {};
         }
-        if (!config.headers["user-agent"]) {
-            config.headers["user-agent"] = this.globalConfig.userAgents[getRandomInt(0, this.globalConfig.userAgents.length)];
+        if (!reqConfig.headers["user-agent"]) {
+            reqConfig.headers["user-agent"] = this.globalConfig.userAgents[getRandomInt(0, this.globalConfig.userAgents.length)];
         }
 
         if (typeof this.globalConfig.timeoutMs === "number") {
-            config.timeout = this.globalConfig.timeoutMs;
+            reqConfig.timeout = this.globalConfig.timeoutMs;
         }
         if (this.globalConfig.defaultHeaders) {
             for (let key in this.globalConfig.defaultHeaders) {
-                config.headers[key] = this.globalConfig.defaultHeaders[key];
+                reqConfig.headers[key] = this.globalConfig.defaultHeaders[key];
             }
         }
         const waitTime = this.globalConfig.waitMsPerRequest || 0;
         this.logger.debug(`等待 ${waitTime}ms`);
         await wait(waitTime);
         this.logger.debug(`发起请求前处理`);
-        await this.onRequestBefore(config);
+        await this.onRequestBefore(reqConfig);
         try {
-            this.logger.debug(`开始发起请求: ${config.url}`);
-            const response = await fetch(config.url, config);
+            this.logger.debug(`开始发起请求: ${reqConfig.url}`);
+            const response = await fetch(reqConfig.url, reqConfig);
             const buf = await response.buffer();
             this.logger.debug(`响应长度: ${buf && buf.length}`);
             if (buf && buf.length) {
@@ -75,21 +75,21 @@ export class HttpClient extends AbsHttpClient {
             }
             return buf;
         } catch (err) {
-            const rc = typeof config.retryCount === "number" ? config.retryCount : this.globalConfig.maxRetryCount;
+            const rc = typeof reqConfig.retryCount === "number" ? reqConfig.retryCount : this.globalConfig.maxRetryCount;
             this.logger.debug(`响应异常: ${err && err.message ? err.message : err}, 剩余重试次数: ${rc}`);
             await this.onRequestError(err, rc);
 
             if (typeof rc === "number" && rc > 0) {
                 let waitTime = 0;
-                const { min, max } = this.globalConfig.retryWaitTimes || config.retryWaitTimes || {};
+                const { min, max } = this.globalConfig.retryWaitTimes || reqConfig.retryWaitTimes || {};
                 if (typeof min === "number" && typeof max === "number") {
                     waitTime = getRandomInt(min, max) * 1000;
                 }
-                this.logger.warn(`retryCount: ${rc}, 返回错误: ${err.message}, 准备等待${waitTime}ms, URL: ${config.url}`);
+                this.logger.warn(`retryCount: ${rc}, 返回错误: ${err.message}, 准备等待${waitTime}ms, URL: ${reqConfig.url}`);
                 await wait(waitTime); // 发生错误了增加等待时长
-                return await this.request({ ...config, retryCount: rc - 1 });
+                return await this.request({ ...reqConfig, retryCount: rc - 1 });
             } else {
-                this.logger.error(`retryCount: ${rc}, 获取失败: ${err.message}, URL: ${config.url}`);
+                this.logger.error(`retryCount: ${rc}, 获取失败: ${err.message}, URL: ${reqConfig.url}`);
                 return null;
             }
         }
@@ -104,6 +104,7 @@ export class HttpClient extends AbsHttpClient {
     static InitClientBySimple(): HttpClient {
         const init: HttpClientInit = {
             logger: new NullLogger(),
+            cache: new NullCache(),
             defaultHeaders: {
                 "cache-control": "no-cache",
                 "pragma": "no-cache",
