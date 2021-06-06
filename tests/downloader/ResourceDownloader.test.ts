@@ -1,4 +1,4 @@
-import { HttpClient, ResourceDownloader } from "../../src";
+import { HttpClient, ResourceDownloader } from "../index";
 import path from "path";
 import fs from "fs";
 

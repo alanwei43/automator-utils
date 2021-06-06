@@ -1,5 +1,5 @@
 import path from "path";
-import { AutomatorConfig, Automator, AutomatorJobConfig, ConsoleLogger, ILogger, NullLogger, FileLogger } from "../../src/index";
+import { AutomatorConfig, Automator, AutomatorJobConfig, ConsoleLogger, ILogger, NullLogger, FileLogger } from "../index";
 
 const logger: ILogger = new FileLogger("automator-test");
 

@@ -1,4 +1,4 @@
-import { FileLogger } from "../../src/logger";
+import { FileLogger } from "../index";
 
 test("文件日志 正常写入", async () => {
     const logger = new FileLogger(Date.now().toString(16));

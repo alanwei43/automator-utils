@@ -1,5 +1,4 @@
-import { PlainObject } from "../../src/types";
-import { OnionCompose, OnionMiddleware } from "../../src/onion/index";
+import { PlainObject, OnionCompose, OnionMiddleware } from "../index";
 
 test("洋葱模型 忽略next", async () => {
     let count = 0;
