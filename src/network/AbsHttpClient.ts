@@ -7,9 +7,7 @@ import path from "path";
 import { promisify } from "util";
 
 export abstract class AbsHttpClient implements IHttpClient {
-    protected readonly logger: ILogger
-    constructor(logger: ILogger) {
-        this.logger = logger;
+    constructor(protected logger: ILogger) {
     }
 
     abstract request(config: FetchConfig): Promise<Buffer>

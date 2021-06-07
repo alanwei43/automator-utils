@@ -32,23 +32,27 @@ export class FileCache implements ICache {
         };
     }
     async getCache(key: string): Promise<Buffer> {
+        this._logger.debug(`获取key为${key}的缓存`);
         const fp = this.getFilePath(key);
         const exist = await promisify(fs.exists)(fp.filePath);
-        if (!exist) return null;
+        if (!exist) {
+            this._logger.debug(`key为${key}的缓存文件不存在`);
+            return null;
+        }
         const fileContent = await promisify(fs.readFile)(fp.filePath);
+        this._logger.debug(`返回key为${key}的缓存, 内容长度为: ${fileContent.length}`);
         return fileContent;
     }
     async updateCache(key: string, data: Buffer): Promise<void> {
+        this._logger.debug(`设置key为${key}的缓存, 内容长度为: ${data.length}`);
         const fp = this.getFilePath(key);
         if (!fs.existsSync(fp.fileDir)) {
+            this._logger.debug(`缓存${key}的目录${fp.fileDir}不存在, 开始创建`);
             fs.mkdirSync(fp.fileDir, {
                 recursive: true
             });
         }
         await promisify(fs.writeFile)(fp.filePath, data);
-        this._logger.debug(JSON.stringify({
-            key: key,
-            hash: fp.hash
-        }));
+        this._logger.debug(`key为${key}的缓存写入到${fp.filePath}成功`);
     }
 }

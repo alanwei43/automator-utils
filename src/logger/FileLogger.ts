@@ -6,7 +6,6 @@ import { ILogger, LogLevel } from "./ILogger";
 export class FileLogger implements ILogger {
     private name: string
     private dir: string
-    private readonly pid: number = process.pid
     constructor(name: string, dest?: string) {
         this.name = name;
         this.dir = dest || path.join(process.cwd(), "logs");

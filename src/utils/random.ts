@@ -5,7 +5,7 @@
  * @returns {number}
  * @see https://developer.mozilla.org/en-US/docs/web/javascript/reference/global_objects/math/random
  */
-export function getRandomInt(min, max) {
+export function getRandomInt(min: number, max: number): number {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min) + min);
@@ -18,6 +18,6 @@ export function getRandomInt(min, max) {
  * @returns {number}
  * @see https://developer.mozilla.org/en-US/docs/web/javascript/reference/global_objects/math/random
  */
-export function getRandomArbitrary(min, max) {
+export function getRandomArbitrary(min: number, max: number): number {
     return Math.random() * (max - min) + min;
 }

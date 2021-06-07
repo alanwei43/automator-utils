@@ -36,7 +36,7 @@ export class Automator {
         const filterModule = this.ctor.moduleFilter || (f => f.endsWith(".js"));
         const self = this;
         (function recursive(dir) {
-            self.ctor.logger.debug(`读取 ${dir} 目录下文件`);
+            self.ctor.logger.debug(`读取 ${dir} 目录下目录及文件`);
             fs.readdirSync(dir)
                 .map(child => ({
                     name: child,
@@ -48,13 +48,13 @@ export class Automator {
                     stat: fs.statSync(info.fullPath)
                 }))
                 .forEach(info => {
-                    self.ctor.logger.debug(`文件/目录路径 ${info.fullPath}`);
+                    self.ctor.logger.debug(`读取到 ${info.fullPath}`);
                     if (info.stat.isFile() && filterModule(info.fullPath)) {
-                        self.ctor.logger.debug(`执行require`);
+                        self.ctor.logger.debug(`检测为JS模块文件, 执行require`);
                         const modules = require(info.fullPath);
 
                         if (modules && typeof modules === "object") {
-                            self.ctor.logger.debug(`导出对象为object类型`);
+                            self.ctor.logger.debug(`检测到模块导出对象为object类型, 添加到模块路径`);
                             self._middlewareRequirePaths.add(info.fullPath);
 
                             Object.keys(modules)
@@ -72,6 +72,7 @@ export class Automator {
                         }
                     }
                     if (info.stat.isDirectory()) {
+                        self.ctor.logger.debug(`检测为目录, 递归该目录下文件`);
                         recursive(info.fullPath);
                     }
                 });
@@ -112,22 +113,27 @@ export class Automator {
         }
         this.ctor.logger.debug(`根据配置组装job, 配置为: ${JSON.stringify(config)}`);
         for (let job of config.jobs) {
-            this.ctor.logger.debug(`设置job: ${job.name}`);
+            const logKey = [`job:${job.name}`];
+            this.ctor.logger.debug(`${logKey.join(" ")} 设置job`);
             modules.set(job.name, (cmd: any, utils: StepMiddlewareUtil) => {
                 const compose = new OnionCompose<StepMiddlewareUtil, StepMiddleware>(utils);
 
                 if (!Array.isArray(job.steps)) {
                     throw new Error(`[config: ${config.name}, job: ${job.name}] steps 必须是数组`);
                 }
-                this.ctor.logger.debug(`循环step`);
+                this.ctor.logger.debug(`[${logKey.join(" ")}] 共 ${job.steps} 个step`);
                 for (let stepNameOrObj of job.steps) {
                     const step: AutomatorStepConfig = typeof stepNameOrObj === "string" ? { id: stepNameOrObj } : stepNameOrObj;
+                    logKey.push(`step:${step.id}`);
 
                     const mw = this._middlewareModules.get(step.id);
                     if (!mw) {
-                        console.warn(`[${config.name} ${job.name}] step ${step.id} 不存在`);
+                        console.warn(`step ${step.id} 不存在`);
+                        this.ctor.logger.error(`[${logKey.join(" ")}] step不存在`);
                         continue;
                     }
+
+                    this.ctor.logger.error(`[${logKey.join(" ")}] step获取成功`);
 
                     const ctor: StepMiddlewareCtor = {
                         config: config,
@@ -137,9 +143,11 @@ export class Automator {
                     };
                     const instance: StepMiddleware = Reflect.construct(mw, [ctor]);
 
-                    this.ctor.logger.debug(`添加job的step为到中间件`);
+                    this.ctor.logger.error(`[${logKey.join(" ")}] step实例化成功`);
                     compose.use(instance);
+                    logKey.pop();
                 }
+                this.ctor.logger.debug(`[${logKey.join(" ")}] compose组装完成并返回`);
                 return compose;
             });
         }

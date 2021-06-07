@@ -1,9 +1,9 @@
 import type { StringMap } from "../types";
-import { ICache, NullCache } from '../cache';
+import { FileCache, ICache, NullCache } from '../cache';
 import { getRandomInt, wait } from '../utils'
 import { FetchConfig, AbsHttpClient } from './index';
 import fetch, { FetchError } from "node-fetch";
-import { ILogger, NullLogger } from '../logger';
+import { FileLogger, ILogger, NullLogger } from '../logger';
 
 export type HttpClientInit = {
     logger: ILogger
@@ -35,7 +35,7 @@ export class HttpClient extends AbsHttpClient {
     }
     async request(reqConfig: FetchConfig): Promise<Buffer> {
         const key = [reqConfig.method, reqConfig.url, reqConfig.body].filter(part => typeof part === "string").join(",");
-        this.logger.debug(`cache key: ${key}`);
+        this.logger.debug(`HTTP请求的唯一标识为: ${key}`);
         if (reqConfig.disableCache !== true) {
             const data = await this.globalConfig.cache.getCache(key);
             if (data && data.length) {
@@ -43,14 +43,13 @@ export class HttpClient extends AbsHttpClient {
                 return data;
             }
         }
-        if (!reqConfig.headers) {
+        if (reqConfig.headers === null || reqConfig.headers === undefined) {
             reqConfig.headers = {};
         }
-        if (!reqConfig.headers["user-agent"]) {
+        if (typeof reqConfig.headers["user-agent"] !== "string" && Array.isArray(this.globalConfig.userAgents)) {
             reqConfig.headers["user-agent"] = this.globalConfig.userAgents[getRandomInt(0, this.globalConfig.userAgents.length)];
         }
-
-        if (typeof this.globalConfig.timeoutMs === "number") {
+        if (typeof reqConfig.timeout !== "number" && typeof this.globalConfig.timeoutMs === "number") {
             reqConfig.timeout = this.globalConfig.timeoutMs;
         }
         if (this.globalConfig.defaultHeaders) {
@@ -59,19 +58,20 @@ export class HttpClient extends AbsHttpClient {
             }
         }
         const waitTime = this.globalConfig.waitMsPerRequest || 0;
-        this.logger.debug(`等待 ${waitTime}ms`);
+        this.logger.debug(`请求前等待 ${waitTime}ms`);
         await wait(waitTime);
-        this.logger.debug(`发起请求前处理`);
+        this.logger.debug(`执行请求前处理`);
         await this.onRequestBefore(reqConfig);
         try {
             this.logger.debug(`开始发起请求: ${reqConfig.url}`);
             const response = await fetch(reqConfig.url, reqConfig);
+            this.logger.debug(`读取响应buffer`);
             const buf = await response.buffer();
-            this.logger.debug(`响应长度: ${buf && buf.length}`);
+            this.logger.debug(`响应buffer长度: ${buf && buf.length}`);
             if (buf && buf.length) {
                 this.globalConfig.cache.updateCache(key, buf);
             } else {
-                throw new Error("响应内容为空");
+                throw new Error(`${reqConfig.url} 响应内容为空`);
             }
             return buf;
         } catch (err) {
@@ -85,11 +85,11 @@ export class HttpClient extends AbsHttpClient {
                 if (typeof min === "number" && typeof max === "number") {
                     waitTime = getRandomInt(min, max) * 1000;
                 }
-                this.logger.warn(`retryCount: ${rc}, 返回错误: ${err.message}, 准备等待${waitTime}ms, URL: ${reqConfig.url}`);
+                this.logger.warn(`retryCount: ${rc}, 返回错误: ${err.message}, 准备等待${waitTime}ms`);
                 await wait(waitTime); // 发生错误了增加等待时长
                 return await this.request({ ...reqConfig, retryCount: rc - 1 });
             } else {
-                this.logger.error(`retryCount: ${rc}, 获取失败: ${err.message}, URL: ${reqConfig.url}`);
+                this.logger.error(`retryCount: ${rc}, 获取失败: ${err.message}`);
                 return null;
             }
         }
@@ -101,10 +101,27 @@ export class HttpClient extends AbsHttpClient {
         return Promise.resolve();
     }
 
-    static InitClientBySimple(): HttpClient {
-        const init: HttpClientInit = {
+    static InitClientByNull(): HttpClient {
+        return HttpClient.InitBasicClient({
             logger: new NullLogger(),
-            cache: new NullCache(),
+            cache: new NullCache()
+        })
+    }
+
+    static InitClientByFile(fileLoggerName: string, fileCacheDir: string, requestTimeout?: number): HttpClient {
+        const logger = new FileLogger(fileLoggerName);
+        return HttpClient.InitBasicClient({
+            logger: logger,
+            cache: new FileCache(fileCacheDir, 2, logger),
+            requestTimeout: requestTimeout
+        })
+    }
+
+    static InitBasicClient(config: { logger: ILogger, cache: ICache, requestTimeout?: number }): HttpClient {
+        const init: HttpClientInit = {
+            logger: config.logger,
+            cache: config.cache,
+            timeoutMs: config.requestTimeout,
             defaultHeaders: {
                 "cache-control": "no-cache",
                 "pragma": "no-cache",

@@ -3,7 +3,7 @@ import path from "path";
 import fs from "fs";
 
 test("资源下载 测试下载", async () => {
-    const downloader = new ResourceDownloader(HttpClient.InitClientBySimple());
+    const downloader = new ResourceDownloader(HttpClient.InitClientByNull());
     const results = await downloader.download([{
         "rootDir": "logs",
         "baseUrl": "http://www.alanwei.com/",
