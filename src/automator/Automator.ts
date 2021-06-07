@@ -3,7 +3,7 @@ import path from "path";
 import { OnionCompose, readYamlConfig, ILogger } from "../index";
 import { AutomatorConfig, AutomatorStepConfig, StepMiddleware, StepMiddlewareCtor, StepMiddlewareUtil } from "./index";
 
-type OnionComposeGetter = (cmd: any, utils?: StepMiddlewareUtil) => OnionCompose<StepMiddlewareUtil, StepMiddleware>
+export type OnionComposeGetter = (cmd: any, utils?: StepMiddlewareUtil) => OnionCompose<StepMiddlewareUtil, StepMiddleware>
 
 export type AutomatorCtor = {
     /**
