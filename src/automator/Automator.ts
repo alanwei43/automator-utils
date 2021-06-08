@@ -143,7 +143,7 @@ export class Automator {
                     };
                     const instance: StepMiddleware = Reflect.construct(mw, [ctor]);
 
-                    this.ctor.logger.error(`[${logKey.join(" ")}] step实例化成功`);
+                    this.ctor.logger.debug(`[${logKey.join(" ")}] step实例化成功`);
                     compose.use(instance);
                     logKey.pop();
                 }
