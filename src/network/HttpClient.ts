@@ -22,21 +22,17 @@ export class HttpClient extends AbsHttpClient {
     constructor(init: HttpClientInit) {
         super(init.logger);
 
-        if (!init.cache) {
-            init.cache = new NullCache();
-        }
         this.globalConfig = {
             /** 默认配置 */
             userAgents: [],
-            cache: new NullCache(),
             /** 用户配置 */
             ...init,
         };
     }
     async request(reqConfig: FetchConfig): Promise<Buffer> {
         const key = [reqConfig.method, reqConfig.url, reqConfig.body].filter(part => typeof part === "string").join(",");
-        this.logger.debug(`HTTP请求的唯一标识为: ${key}`);
-        if (reqConfig.disableCache !== true) {
+        this.logger.debug(`HTTP请求的Cache Id: ${key}`);
+        if (this.globalConfig.cache && !reqConfig.disableCache) {
             const data = await this.globalConfig.cache.getCache(key);
             if (data && data.length) {
                 this.logger.debug(`使用缓存: ${reqConfig.url}`);
@@ -68,7 +64,7 @@ export class HttpClient extends AbsHttpClient {
             this.logger.debug(`读取响应buffer`);
             const buf = await response.buffer();
             this.logger.debug(`响应buffer长度: ${buf && buf.length}`);
-            if (buf && buf.length) {
+            if (buf && buf.length && this.globalConfig.cache) {
                 this.globalConfig.cache.updateCache(key, buf);
             } else {
                 throw new Error(`${reqConfig.url} 响应内容为空`);
