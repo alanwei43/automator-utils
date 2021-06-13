@@ -6,7 +6,7 @@ import { FileLogger, NullLogger, OnionCompose, StepMiddleware, UtilData, exposeM
 export class RunJobInThread {
     private runner: OnionCompose<UtilData, StepMiddleware>
 
-    async start(config: RunJobInThreadConfig) {
+    async start(config: RunJobInThreadConfig): Promise<any> {
         if (this.runner) {
             console.log(`线程已经存在`);
             return;
@@ -24,6 +24,9 @@ export class RunJobInThread {
             jobs = await automator.getJobs(config.jobConfig);
         }
         const action = jobs.get(config.jobActionName);
+        if (typeof action !== "function") {
+            return { success: false, error: `找不到action(${config.jobActionName})` };
+        }
         this.runner = action({});
         const result = await this.runner.run();
         return result;

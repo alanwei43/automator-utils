@@ -17,7 +17,7 @@ export type RunJobInThreadConfig = {
  * 在新线程运行作业
  * @param config 配置
  */
-export async function runJobInThread(config: RunJobInThreadConfig): Promise<RunJobInThread> {
+export function runJobInThread(config: RunJobInThreadConfig): RunJobInThread {
     const extName = path.extname(__filename);
     const threadModulePath = path.join(__dirname, `RunJobInThread${extName}`);
     const { invoke, thread } = invokeChildThreadMethods<RunJobInThread>({
