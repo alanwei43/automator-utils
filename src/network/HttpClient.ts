@@ -6,7 +6,7 @@ import fetch, { FetchError } from "node-fetch";
 import { FileLogger, ILogger, NullLogger } from '../logger';
 
 export type HttpClientInit = {
-    logger: ILogger
+    logger?: ILogger
     cache?: ICache
     waitMsPerRequest?: number
     maxRetryCount?: number
@@ -20,7 +20,7 @@ export class HttpClient extends AbsHttpClient {
     private readonly globalConfig: HttpClientInit
 
     constructor(init: HttpClientInit) {
-        super(init.logger);
+        super(init.logger || new NullLogger());
 
         this.globalConfig = {
             /** 默认配置 */
@@ -53,9 +53,11 @@ export class HttpClient extends AbsHttpClient {
                 reqConfig.headers[key] = this.globalConfig.defaultHeaders[key];
             }
         }
-        const waitTime = this.globalConfig.waitMsPerRequest || 0;
-        this.logger.debug(`请求前等待 ${waitTime}ms`);
-        await wait(waitTime);
+        const waitTime = this.globalConfig.waitMsPerRequest;
+        if (typeof waitTime === "number" && waitTime > 0) {
+            this.logger.debug(`请求前等待 ${waitTime}ms`);
+            await wait(waitTime);
+        }
         this.logger.debug(`执行请求前处理`);
         await this.onRequestBefore(reqConfig);
         try {
