@@ -3,21 +3,26 @@ import { invokeChildThreadMethods } from "../index";
 import { AutomatorConfig } from "./index";
 import { RunJobInThread } from "./RunJobInThread";
 
-export type RunJobInThreadConfig = {
+export type RunJobInThreadStartConfig = {
     modulesDirs: Array<string>
-    fileLoggerName: string
+    fileLoggerName?: string
     /**
      * 配置文件路径或者配置信息
      */
     jobConfig: string | AutomatorConfig
     jobActionName: string
 }
+export interface IRunJobInThread {
+    start(config: RunJobInThreadStartConfig): Promise<any>
+    cancel(): void
+    exit(): void
+}
 
 /**
  * 在新线程运行作业
  * @param config 配置
  */
-export function runJobInThread(config: RunJobInThreadConfig): RunJobInThread {
+export function runJobInThread(): IRunJobInThread {
     const extName = path.extname(__filename);
     const threadModulePath = path.join(__dirname, `RunJobInThread${extName}`);
     const { invoke, thread } = invokeChildThreadMethods<RunJobInThread>({
@@ -36,6 +41,7 @@ export function runJobInThread(config: RunJobInThreadConfig): RunJobInThread {
     thread.on("error", err => {
         console.log(err);
     });
+
 
     return invoke;
 }

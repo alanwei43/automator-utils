@@ -1,12 +1,12 @@
-import { RunJobInThreadConfig } from "./run-in-quickly";
+import { RunJobInThreadStartConfig, IRunJobInThread } from "./run-in-quickly";
 import { Automator, OnionComposeGetter } from "./Automator";
 import { FileLogger, NullLogger, OnionCompose, StepMiddleware, UtilData, exposeMethodsToOtherThread } from "../index";
 
 
-export class RunJobInThread {
+export class RunJobInThread implements IRunJobInThread {
     private runner: OnionCompose<UtilData, StepMiddleware>
 
-    async start(config: RunJobInThreadConfig): Promise<any> {
+    async start(config: RunJobInThreadStartConfig): Promise<any> {
         if (this.runner) {
             console.log(`线程已经存在`);
             return;
