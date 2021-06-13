@@ -1,0 +1,5 @@
+name: sample
+jobs:
+  - name: job1
+    steps:
+      - id: /m2/ToUpperCase

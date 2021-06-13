@@ -13,7 +13,7 @@ export type RunJobInThreadStartConfig = {
     jobActionName: string
 }
 export interface IRunJobInThread {
-    start(config: RunJobInThreadStartConfig): Promise<any>
+    start(config: RunJobInThreadStartConfig, cmd: any): Promise<any>
     cancel(): void
     exit(): void
 }
@@ -39,7 +39,7 @@ export function runJobInThread(): IRunJobInThread {
     });
 
     thread.on("error", err => {
-        console.log(err);
+        console.log(`runJobInThread: `, err);
     });
 
     return invoke;
