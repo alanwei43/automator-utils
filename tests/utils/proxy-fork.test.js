@@ -15,6 +15,7 @@ test("测试调用子线程方法", async () => {
     const childPID = methods.thread.pid;
     const pid = await methods.invoke.getPID();
     expect(pid).toBe(childPID);
+    methods.invoke.exit();
 }, 10 * 1000);
 
 test(`测试子线程调用父线程方法`, async () => {
@@ -30,4 +31,5 @@ test(`测试子线程调用父线程方法`, async () => {
     });
     const result = await proxy.testCallParentMethod(`getParentPID`);
     expect(result).toBe(process.pid);
+    proxy.exit();
 });

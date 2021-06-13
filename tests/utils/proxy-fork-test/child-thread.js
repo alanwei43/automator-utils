@@ -11,5 +11,8 @@ AutomatorUtils.exposeMethodsToOtherThread(process, {
     },
     testCallParentMethod(methodName) {
         return proxy[methodName]();
+    },
+    exit() {
+        process.exit(0)
     }
 });
