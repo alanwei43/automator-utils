@@ -1,4 +1,4 @@
-import { runJobInNewThread } from "../../src/automator/run-in-quickly";
+import { runJobInThread } from "../../src/automator/run-in-quickly";
 
 test("runJobInNewThread", () => {
     // runJobInNewThread({ });
