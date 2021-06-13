@@ -21,3 +21,12 @@ export function getRandomInt(min: number, max: number): number {
 export function getRandomArbitrary(min: number, max: number): number {
     return Math.random() * (max - min) + min;
 }
+
+/**
+ * 返回随机字符串
+ */
+export function getRandomStr(): string {
+    const p1 = Date.now().toString(16);
+    const p2 = Math.random().toString(16).split(".")[1];
+    return `${p1}-${p2}`;
+}

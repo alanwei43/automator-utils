@@ -23,7 +23,6 @@ export class Automator {
     constructor(private ctor: AutomatorCtor) {
         this._middlewareModules = new Map();
         this._middlewareRequirePaths = new Set();
-        this.refreshModules();
     }
 
     private initDirModules(root: string) {
@@ -33,7 +32,8 @@ export class Automator {
             return;
         }
 
-        const filterModule = this.ctor.moduleFilter || (f => f.endsWith(".js"));
+        const thisExtName = path.extname(__filename);
+        const filterModule = this.ctor.moduleFilter || (f => path.extname(f) === thisExtName);
         const self = this;
         (function recursive(dir) {
             self.ctor.logger.debug(`读取 ${dir} 目录下目录及文件`);
@@ -78,12 +78,18 @@ export class Automator {
                 });
         }).bind(this)(root);
     }
-    public refreshModules() {
-        for (let p of this._middlewareRequirePaths) {
-            delete require.cache[p];
+    public refreshModules(cleanCache: boolean) {
+        this.ctor.logger.debug(`刷新模块`);
+        if (cleanCache) {
+            for (let p of this._middlewareRequirePaths) {
+                this.ctor.logger.debug(`删除模块缓存, 模块地址: ${p}`);
+                delete require.cache[p];
+            }
         }
         for (let dir of this.ctor.modulesRootDir) {
+            this.ctor.logger.debug(`加载目录(${dir})下模块`);
             this.initDirModules(dir);
+            this.ctor.logger.debug(`目录(${dir})下模块加载完成`);
         }
     }
     private getModuleId(rootDir: string, moduleFullPath: string, moduleName: string): string {
