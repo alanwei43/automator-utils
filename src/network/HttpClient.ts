@@ -64,8 +64,8 @@ export class HttpClient extends AbsHttpClient {
             this.logger.debug(`读取响应buffer`);
             const buf = await response.buffer();
             this.logger.debug(`响应buffer长度: ${buf && buf.length}`);
-            if (buf && buf.length && this.globalConfig.cache) {
-                this.globalConfig.cache.updateCache(key, buf);
+            if (buf && buf.length) {
+                this.globalConfig.cache && this.globalConfig.cache.updateCache(key, buf);
             } else {
                 throw new Error(`${reqConfig.url} 响应内容为空`);
             }
