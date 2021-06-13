@@ -16,3 +16,7 @@ AutomatorUtils.exposeMethodsToOtherThread(process, {
         process.exit(0)
     }
 });
+setTimeout(() => {
+
+    console.log("child-thread run");
+}, 50);

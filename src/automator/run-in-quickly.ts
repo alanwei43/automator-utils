@@ -26,16 +26,7 @@ export function runJobInThread(): IRunJobInThread {
     const extName = path.extname(__filename);
     const threadModulePath = path.join(__dirname, `RunJobInThread${extName}`);
     const { invoke, thread } = invokeChildThreadMethods<RunJobInThread>({
-        module: threadModulePath,
-        options: {
-            cwd: process.cwd(),
-            // execPath?: string;
-            // execArgv?: string[];
-            // silent?: boolean;
-            // stdio?: StdioOptions;
-            // detached?: boolean;
-            // windowsVerbatimArguments?: boolean;
-        }
+        module: threadModulePath
     });
 
     thread.on("error", err => {

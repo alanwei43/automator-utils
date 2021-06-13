@@ -1,10 +1,10 @@
-const ProxyFork = require("../../dist/utils/proxy-fork");
+const AutomatorUtils = require("../../dist/index");
 const path = require("path");
 const cp = require("child_process");
 
 const moduleJs = path.join(__dirname, "proxy-fork-test", "child-thread.js");
 test("测试调用子线程方法", async () => {
-    const methods = ProxyFork.invokeChildThreadMethods({
+    const methods = AutomatorUtils.invokeChildThreadMethods({
         "module": moduleJs,
         "options": {
             cwd: process.cwd()
@@ -22,9 +22,9 @@ test(`测试子线程调用父线程方法`, async () => {
     const thread = cp.fork(moduleJs, {
         cwd: process.cwd()
     });
-    const proxy = ProxyFork.proxyOtherThreadMethods(thread, {});
+    const proxy = AutomatorUtils.proxyOtherThreadMethods(thread, {});
 
-    ProxyFork.exposeMethodsToOtherThread(thread, {
+    AutomatorUtils.exposeMethodsToOtherThread(thread, {
         getParentPID() {
             return process.pid
         },

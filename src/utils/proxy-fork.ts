@@ -1,4 +1,4 @@
-import { ChildProcess, fork, ForkOptions } from "child_process";
+import { ChildProcess, fork } from "child_process";
 import { getRandomStr } from "./index";
 
 /**
@@ -29,10 +29,16 @@ interface MethodResult {
  * @param proxyOpts 
  */
 export function invokeChildThreadMethods<T>(
-  forkOpts: { module: string, args?: Array<string>, options?: ForkOptions },
+  forkOpts: { module: string, args?: Array<string> },
   proxyOpts?: InvokeProxyOptions
 ): { invoke: T, thread: ChildProcess } {
-  const cp: ChildProcess = fork(forkOpts.module, forkOpts.args, forkOpts.options);
+  const cp: ChildProcess = fork(forkOpts.module, forkOpts.args, {
+    cwd: process.cwd(),
+    stdio: "pipe"
+  });
+  cp.stdin.pipe(process.stdin);
+  cp.stdout.pipe(process.stdout);
+  cp.stderr.pipe(process.stderr);
   return {
     invoke: proxyOtherThreadMethods(cp, proxyOpts || {}),
     thread: cp
