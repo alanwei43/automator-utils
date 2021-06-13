@@ -42,6 +42,5 @@ export function runJobInThread(): IRunJobInThread {
         console.log(err);
     });
 
-
     return invoke;
 }

@@ -42,4 +42,4 @@ export class RunJobInThread implements IRunJobInThread {
     }
 }
 
-exposeMethodsToOtherThread(new RunJobInThread(), process);
+exposeMethodsToOtherThread(process, new RunJobInThread());

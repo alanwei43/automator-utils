@@ -63,7 +63,6 @@ export function proxyOtherThreadMethods<T>(
   proxyOpts: InvokeProxyOptions
 ): T {
   const invokeCallbacks: Map<string, { resolve: Function, reject: Function }> = new Map();
-
   /**
    * 接收方法返回结果
    */
@@ -122,7 +121,6 @@ export function proxyOtherThreadMethods<T>(
             return;
           }
           const sendData = proxyOpts.json === false ? invoke : JSON.stringify(invoke);
-          console.log(sendData);
           thread.send(sendData, err => {
             err && reject(err);
           });
@@ -153,7 +151,7 @@ export function proxyOtherThreadMethods<T>(
  * @param thread 线程对象: 如果自身是子线程, 暴露方法给父线程, 传Node全局对象process; 如果自身是父线程，暴露方法给子线程, 传子线程对象.
  * @param options 
  */
-export function exposeMethodsToOtherThread<T>(methods: T, thread: NodeJS.Process | ChildProcess, options: { context?: any } = {}): void {
+export function exposeMethodsToOtherThread<T>(thread: NodeJS.Process | ChildProcess, methods: T, options: { context?: any } = {}): void {
   thread.on("message", function (rawRequest: string | InvokeMethod) {
     /**
      * 接收父线程发送的方法调用请求
