@@ -13,7 +13,11 @@ export type RunJobInThreadConfig = {
     jobActionName: string
 }
 
-export async function runJobInThread(config: RunJobInThreadConfig): Promise<any> {
+/**
+ * 在新线程运行作业
+ * @param config 配置
+ */
+export async function runJobInThread(config: RunJobInThreadConfig): Promise<RunJobInThread> {
     const extName = path.extname(__filename);
     const threadModulePath = path.join(__dirname, `RunJobInThread${extName}`);
     const { invoke, thread } = invokeChildThreadMethods<RunJobInThread>({
@@ -33,7 +37,5 @@ export async function runJobInThread(config: RunJobInThreadConfig): Promise<any>
         console.log(err);
     });
 
-    const result = await invoke.start(config);
-    invoke.exit();
-    return result;
+    return invoke;
 }
