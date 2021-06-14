@@ -101,6 +101,8 @@ export function proxyOtherThreadMethods<T>(
     ThreadStatus.exitSignal = signal;
   });
 
+  autoExitChildProcess(thread as ChildProcess);
+
   /**
    * 返回一个代理对象, 处理用户的方法调用请求
    */
@@ -203,4 +205,19 @@ export function exposeMethodsToOtherThread<T>(thread: NodeJS.Process | ChildProc
       thread.send(isJsonFormat ? JSON.stringify(result) : result);
     });
   });
+  autoExitChildProcess(thread as ChildProcess);
+}
+
+function autoExitChildProcess(thread: ChildProcess) {
+  if (process.pid !== thread.pid) {
+    // 检测到不是当前线程
+    process.on("exit", () => {
+      thread.kill();
+    });
+    process.on("SIGINT", () => {
+      thread.kill("SIGINT");
+      process.exit(0);
+    });
+
+  }
 }
