@@ -139,7 +139,7 @@ export class Automator {
                         continue;
                     }
 
-                    this.ctor.logger.error(`[${logKey.join(" ")}] step获取成功`);
+                    this.ctor.logger.debug(`[${logKey.join(" ")}] step获取成功`);
 
                     const ctor: StepMiddlewareCtor = {
                         config: config,
