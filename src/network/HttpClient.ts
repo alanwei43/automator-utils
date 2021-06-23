@@ -69,7 +69,7 @@ export class HttpClient extends AbsHttpClient {
             if (buf && buf.length) {
                 this.globalConfig.cache && this.globalConfig.cache.updateCache(key, buf);
             } else {
-                throw new Error(`${reqConfig.url} 响应内容为空`);
+                throw new FetchError(`响应内容为空`, "response-body-empty")
             }
             return buf;
         } catch (err) {
