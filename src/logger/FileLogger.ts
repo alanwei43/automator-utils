@@ -4,9 +4,10 @@ import { ILogger, LogLevel } from "./ILogger";
 
 
 export class FileLogger implements ILogger {
-    private name: string
-    private dir: string
-    constructor(name: string, dest?: string) {
+    private readonly name: string
+    private readonly dir: string
+    private count: number = 0
+    constructor(name: string, dest?: string, private readonly enableCount?: boolean) {
         this.name = name;
         this.dir = dest || path.join(process.cwd(), "logs");
         this.checkDir();
@@ -17,8 +18,11 @@ export class FileLogger implements ILogger {
         }
     }
     private write(level: LogLevel, ...args: Array<any>) {
+        if (this.enableCount && this.count >= Number.MAX_SAFE_INTEGER) {
+            this.count = 0;
+        }
         const filePath = this.getLogFilePath(level);
-        args.unshift(`[${new Date().toLocaleString()}]`);
+        args.unshift(`[${this.enableCount ? ++this.count + " " : ""}${new Date().toLocaleString()}]`);
         args.push("\n");
         try {
             fs.appendFileSync(filePath, args.join(" "), {
