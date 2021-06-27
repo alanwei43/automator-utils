@@ -40,14 +40,31 @@ export function encodeParams(params: PlainObject): string {
     return Object.keys(params)
         .map(key => ({
             key: key,
-            value: params[key] === null || params[key] === undefined ? "" : params[key]
+            value: params[key]
         }))
+        .filter(kv => kv.value !== null && kv.value !== undefined)
         .map(kv => ({
-            key: encodeURIComponent(kv.key),
-            value: encodeURIComponent(kv.value)
+            key: encodeURIComponent(kv.key + ""),
+            value: encodeURIComponent(kv.value + "")
         }))
         .map(kv => `${kv.key}=${kv.value}`)
         .join("&");
+}
+
+/**
+ * 给URL追加查询参数
+ * @param url string
+ * @param params URL查询参数
+ */
+export function appendUrlParams(url: string, params: PlainObject): string {
+    if (!params) {
+        return url;
+    }
+    const urlParams = encodeParams(params);
+    if (!urlParams) {
+        return url;
+    }
+    return `${url}${url.includes("?") ? "&" : "?"}${urlParams}`;
 }
 
 export const getUserAgents = () => [
