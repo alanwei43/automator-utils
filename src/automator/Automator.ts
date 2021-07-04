@@ -127,19 +127,18 @@ export class Automator {
                 if (!Array.isArray(job.steps)) {
                     throw new Error(`[config: ${config.name}, job: ${job.name}] steps 必须是数组`);
                 }
-                this.ctor.logger.debug(`[${logKey.join(" ")}] 共 ${job.steps} 个step`);
+                this.ctor.logger.debug(`[${logKey.join(" ")}] 共 ${job.steps.length} 个step`);
                 for (let stepNameOrObj of job.steps) {
                     const step: AutomatorStepConfig = typeof stepNameOrObj === "string" ? { id: stepNameOrObj } : stepNameOrObj;
-                    logKey.push(`step:${step.id}`);
 
                     const mw = this._middlewareModules.get(step.id);
                     if (!mw) {
                         console.warn(`step ${step.id} 不存在`);
-                        this.ctor.logger.error(`[${logKey.join(" ")}] step不存在`);
+                        this.ctor.logger.error(`[${logKey.join(" ")} ${step.id}] step不存在`);
                         continue;
                     }
 
-                    this.ctor.logger.debug(`[${logKey.join(" ")}] step获取成功`);
+                    this.ctor.logger.debug(`[${logKey.join(" ")} ${step.id}] step获取成功`);
 
                     const ctor: StepMiddlewareCtor = {
                         config: config,
@@ -149,9 +148,8 @@ export class Automator {
                     };
                     const instance: StepMiddleware = Reflect.construct(mw, [ctor]);
 
-                    this.ctor.logger.debug(`[${logKey.join(" ")}] step实例化成功`);
+                    this.ctor.logger.debug(`[${logKey.join(" ")} ${step.id}] step实例化成功`);
                     compose.use(instance);
-                    logKey.pop();
                 }
                 this.ctor.logger.debug(`[${logKey.join(" ")}] compose组装完成并返回`);
                 return compose;
