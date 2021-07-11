@@ -20,4 +20,11 @@ test("资源下载 测试下载", async () => {
     expect(results[0].file).toBe(path.join(process.cwd(), "logs", "README.md"));
     expect(results[1].status).toBe("success");
     expect(results[1].file).toBe(path.join(process.cwd(), "logs", "test", "new-name.md"));
+
+    if (fs.existsSync(results[0].file)) {
+        fs.unlinkSync(results[0].file);
+    }
+    if (fs.existsSync(results[1].file)) {
+        fs.unlinkSync(results[1].file);
+    }
 });
