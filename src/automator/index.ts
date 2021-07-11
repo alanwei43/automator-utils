@@ -6,8 +6,9 @@ export type AutomatorConfig = {
 } & PlainObjectGeneric<string | number | boolean | Array<AutomatorJobConfig>>
 
 export type AutomatorJobConfig = {
-    name: string,
+    name: string
     steps: Array<AutomatorStepConfig | string>
+    next?: AutomatorJobConfig
 } & PlainObjectGeneric<string | number | boolean | Array<AutomatorStepConfig | string>>
 
 export type AutomatorStepConfig = {

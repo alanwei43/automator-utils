@@ -1,6 +1,6 @@
 import { RunJobInThreadStartConfig, IRunJobInThread } from "./run-in-quickly";
-import { Automator, OnionComposeGetter } from "./Automator";
-import { FileLogger, NullLogger, OnionCompose, StepMiddleware, UtilData, exposeMethodsToOtherThread } from "../index";
+import { Automator, JobsData, OnionComposeGetter } from "./Automator";
+import { FileLogger, NullLogger, OnionCompose, StepMiddleware, UtilData, exposeMethodsToOtherThread, StepMiddlewareUtil } from "../index";
 
 
 export class RunJobInThread implements IRunJobInThread {
@@ -17,17 +17,14 @@ export class RunJobInThread implements IRunJobInThread {
             "modulesRootDir": config.modulesDirs
         });
         automator.refreshModules(false);
-        let jobs: Map<string, OnionComposeGetter> = null;
+        let jobs: Map<string, OnionCompose<StepMiddlewareUtil, StepMiddleware>> = null;
+        const jobsData: JobsData = { [config.jobActionName]: { "stepCmd": cmd, "utils": {} } };
         if (typeof config.jobConfig === "string") {
-            jobs = await automator.getJobsByFile(config.jobConfig);
+            jobs = await automator.getJobsByFile(config.jobConfig, jobsData);
         } else {
-            jobs = await automator.getJobs(config.jobConfig);
+            jobs = await automator.getJobs(config.jobConfig, jobsData);
         }
-        const action = jobs.get(config.jobActionName);
-        if (typeof action !== "function") {
-            return { success: false, error: `找不到action(${config.jobActionName})` };
-        }
-        this.runner = action(cmd);
+        this.runner = jobs.get(config.jobActionName);
         const result = await this.runner.run();
         return result;
     }

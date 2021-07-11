@@ -21,12 +21,15 @@ test("自动化脚本 基于代码配置", async () => {
         "name": "jack",
         "jobs": [job]
     };
-    const all = await auto.getJobs(config);
-    const action = all.get("action-1");
-    const compose = await action({
-        map: (letter: string) => letter.toUpperCase()
-    }, {
-    })
+    const all = await auto.getJobs(config, {
+        "action-1": {
+            stepCmd: {
+                map: (letter: string) => letter.toUpperCase()
+            },
+        }
+    });
+    const compose = all.get("action-1");
+
     const result = await compose.run();
     expect(result).toBe("ALAN WEI");
 });
@@ -38,15 +41,18 @@ test("自动化脚本 基于配置文件", async () => {
         "logger": logger
     });
     auto.refreshModules(false);
-    const all = await auto.getJobsByFile(path.join(__dirname, "modules", "config.yml"));
-    const action = all.get("action-1");
-    const compose = await action({
-        map: (letter: string) => letter.toUpperCase()
-    }, {
-    })
+    const all = await auto.getJobsByFile(path.join(__dirname, "modules", "config.yml"), {
+        "action-1": {
+            stepCmd: {
+                map: (letter: string) => letter.toUpperCase()
+            },
+        }
+    });
+    const compose = all.get("action-1");
     const result = await compose.run();
     expect(result).toBe("ALAN WEI");
 });
+
 /**
  * util 正确传递
  * compose.run(...) 正确传递

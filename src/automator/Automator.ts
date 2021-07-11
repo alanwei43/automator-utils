@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { OnionCompose, readYamlConfig, ILogger } from "../index";
+import { OnionCompose, readYamlConfig, ILogger, FileLogger } from "../index";
 import { AutomatorConfig, AutomatorStepConfig, StepMiddleware, StepMiddlewareCtor, StepMiddlewareUtil } from "./index";
 
 export type OnionComposeGetter = (cmd: any, utils?: StepMiddlewareUtil) => OnionCompose<StepMiddlewareUtil, StepMiddleware>
@@ -15,6 +15,13 @@ export type AutomatorCtor = {
      */
     moduleFilter?: (fileName: string) => boolean
     logger: ILogger
+}
+export type JobsData = {
+    [key: string]: {
+        stepCmd: any
+        utils?: StepMiddlewareUtil
+        logger?: ILogger
+    }
 }
 export class Automator {
     private readonly _middlewareModules: Map<string, () => StepMiddleware>
@@ -103,17 +110,17 @@ export class Automator {
         return "/" + moduleId;
     }
 
-    public async getJobsByFile(configFilePath: string): Promise<Map<string, OnionComposeGetter>> {
+    public async getJobsByFile(configFilePath: string, jobsData: JobsData): Promise<Map<string, OnionCompose<StepMiddlewareUtil, StepMiddleware>>> {
         const config = readYamlConfig<AutomatorConfig>(configFilePath);
         if (!config) {
             this.ctor.logger.error(`配置文件${configFilePath}读取失败`);
             return Promise.reject(new Error(`配置文件${configFilePath}读取失败`));
         }
-        return this.getJobs(config);
+        return this.getJobs(config, jobsData);
     }
 
-    public async getJobs(config: AutomatorConfig): Promise<Map<string, OnionComposeGetter>> {
-        const modules: Map<string, OnionComposeGetter> = new Map();
+    public async getJobs(config: AutomatorConfig, jobsData: JobsData): Promise<Map<string, OnionCompose<StepMiddlewareUtil, StepMiddleware>>> {
+        const jobMaps: Map<string, OnionCompose<StepMiddlewareUtil, StepMiddleware>> = new Map();
         if (!Array.isArray(config.jobs)) {
             throw new Error(`[config: ${config.name}] jobs 必须是数组`);
         }
@@ -121,40 +128,52 @@ export class Automator {
         for (let job of config.jobs) {
             const logKey = [`job:${job.name}`];
             this.ctor.logger.debug(`${logKey.join(" ")} 设置job`);
-            modules.set(job.name, (cmd: any, utils: StepMiddlewareUtil) => {
-                const compose = new OnionCompose<StepMiddlewareUtil, StepMiddleware>(utils);
 
-                if (!Array.isArray(job.steps)) {
-                    throw new Error(`[config: ${config.name}, job: ${job.name}] steps 必须是数组`);
+            const { stepCmd, utils, logger } = jobsData[job.name] || {};
+
+            const compose = new OnionCompose<StepMiddlewareUtil, StepMiddleware>(utils, logger || new FileLogger(`onoion-compose-${config.name}-${job.name}`));
+
+            if (!Array.isArray(job.steps)) {
+                throw new Error(`[config: ${config.name}, job: ${job.name}] steps 必须是数组`);
+            }
+
+            this.ctor.logger.debug(`[${logKey.join(" ")}] 共 ${job.steps.length} 个step`);
+            for (let stepNameOrObj of job.steps) {
+                const step: AutomatorStepConfig = typeof stepNameOrObj === "string" ? { id: stepNameOrObj } : stepNameOrObj;
+
+                const mw = this._middlewareModules.get(step.id);
+                if (!mw) {
+                    console.warn(`step ${step.id} 不存在`);
+                    this.ctor.logger.error(`[${logKey.join(" ")} ${step.id}] step不存在`);
+                    continue;
                 }
-                this.ctor.logger.debug(`[${logKey.join(" ")}] 共 ${job.steps.length} 个step`);
-                for (let stepNameOrObj of job.steps) {
-                    const step: AutomatorStepConfig = typeof stepNameOrObj === "string" ? { id: stepNameOrObj } : stepNameOrObj;
 
-                    const mw = this._middlewareModules.get(step.id);
-                    if (!mw) {
-                        console.warn(`step ${step.id} 不存在`);
-                        this.ctor.logger.error(`[${logKey.join(" ")} ${step.id}] step不存在`);
-                        continue;
-                    }
+                this.ctor.logger.debug(`[${logKey.join(" ")} ${step.id}] step获取成功`);
 
-                    this.ctor.logger.debug(`[${logKey.join(" ")} ${step.id}] step获取成功`);
+                const ctor: StepMiddlewareCtor = {
+                    config: config,
+                    job: job,
+                    step: step,
+                    cmd: stepCmd
+                };
+                const instance: StepMiddleware = Reflect.construct(mw, [ctor]);
 
-                    const ctor: StepMiddlewareCtor = {
-                        config: config,
-                        job: job,
-                        step: step,
-                        cmd: cmd
-                    };
-                    const instance: StepMiddleware = Reflect.construct(mw, [ctor]);
+                this.ctor.logger.debug(`[${logKey.join(" ")} ${step.id}] step实例化成功`);
+                compose.use(instance);
+            }
 
-                    this.ctor.logger.debug(`[${logKey.join(" ")} ${step.id}] step实例化成功`);
-                    compose.use(instance);
-                }
-                this.ctor.logger.debug(`[${logKey.join(" ")}] compose组装完成并返回`);
-                return compose;
-            });
+            this.ctor.logger.debug(`[${logKey.join(" ")}] compose组装完成`);
+
+            jobMaps.set(job.name, compose);
         }
-        return modules;
+        for (let job of config.jobs) {
+            if (typeof job.next === "string") {
+                const mainJob = jobMaps.get(job.name), nextJob = jobMaps.get(job.next);
+                this.ctor.logger.debug(`设置 ${job.name} 的 next job: ${job.next}`);
+                mainJob.updateNext(nextJob);
+            }
+        }
+
+        return jobMaps;
     }
 }
