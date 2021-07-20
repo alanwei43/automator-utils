@@ -1,6 +1,6 @@
 import { RunJobInThreadStartConfig, IRunJobInThread } from "./run-in-quickly";
-import { Automator, JobsData, OnionComposeGetter } from "./Automator";
-import { FileLogger, NullLogger, OnionCompose, StepMiddleware, UtilData, exposeMethodsToOtherThread, StepMiddlewareUtil } from "../index";
+import { Automator, JobsData } from "./Automator";
+import { NullLogger, OnionCompose, StepMiddleware, UtilData, exposeMethodsToOtherThread, StepMiddlewareUtil } from "../index";
 
 
 export class RunJobInThread implements IRunJobInThread {
@@ -13,7 +13,7 @@ export class RunJobInThread implements IRunJobInThread {
         }
 
         const automator = new Automator({
-            "logger": config.fileLoggerName ? new FileLogger(config.fileLoggerName) : new NullLogger(),
+            "logger": new NullLogger,
             "modulesRootDir": config.modulesDirs
         });
         automator.refreshModules(false);

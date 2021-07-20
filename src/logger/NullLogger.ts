@@ -1,10 +1,10 @@
 import { ILogger } from "./ILogger";
 
 export class NullLogger implements ILogger {
-    debug(...args: any[]): void {
+    debug(): void {
     }
-    warn(...args: any[]): void {
+    warn(): void {
     }
-    error(...args: any[]): void {
+    error(): void {
     }
 }
