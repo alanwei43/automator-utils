@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { OnionCompose, readYamlConfig, ILogger, FileLogger } from "../index";
+import { OnionCompose, readYamlConfig, ILogger, NullLogger } from "../index";
 import { AutomatorConfig, AutomatorStepConfig, StepMiddleware, StepMiddlewareCtor, StepMiddlewareUtil } from "./index";
 
 export type OnionComposeGetter = (cmd: any, utils?: StepMiddlewareUtil) => OnionCompose<StepMiddlewareUtil, StepMiddleware>
@@ -131,7 +131,7 @@ export class Automator {
 
             const { stepCmd, utils, logger } = jobsData[job.name] || {};
 
-            const compose = new OnionCompose<StepMiddlewareUtil, StepMiddleware>(utils, logger || new FileLogger(`onoion-compose-${config.name}-${job.name}`));
+            const compose = new OnionCompose<StepMiddlewareUtil, StepMiddleware>(utils, logger || new NullLogger());
 
             if (!Array.isArray(job.steps)) {
                 throw new Error(`[config: ${config.name}, job: ${job.name}] steps 必须是数组`);
