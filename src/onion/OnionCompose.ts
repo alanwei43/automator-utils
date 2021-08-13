@@ -1,20 +1,20 @@
 import { ILogger, NullLogger } from "../index";
 import { NextMiddleware, OnionMiddleware } from "./index";
 
-export class OnionCompose<TUtil, TMiddleware extends OnionMiddleware<TUtil>> {
+export class OnionCompose<TContext, TMiddleware extends OnionMiddleware<TContext>> {
     private readonly middlewares: Array<TMiddleware> = []
     private canceled: boolean
     private finished: boolean
-    private next?: OnionCompose<TUtil, TMiddleware>
+    private next?: OnionCompose<TContext, TMiddleware>
     private readonly _logger: ILogger
 
     constructor(
-        private readonly utils: TUtil,
+        private readonly context: TContext,
         logger?: ILogger
     ) {
         this._logger = logger || new NullLogger();
     }
-    updateNext(next: OnionCompose<TUtil, TMiddleware>) {
+    updateNext(next: OnionCompose<TContext, TMiddleware>) {
         this.next = next;
     }
 
@@ -28,16 +28,16 @@ export class OnionCompose<TUtil, TMiddleware extends OnionMiddleware<TUtil>> {
         // }
     }
 
-    async run(...args): Promise<any> {
+    async run(...args: Array<any>): Promise<any> {
         //ref https://zhuanlan.zhihu.com/p/45837799
-        const initialUtils = this.utils === null || this.utils === undefined ? {} : this.utils;
+        const initialContext = this.context === null || this.context === undefined ? {} : this.context;
         const self = this;
         const logKeyId = [
             `PID:${process.pid}`,
             `Start:${new Date().toLocaleString()}`
         ];
         this._logger.debug(`[${logKeyId.join(" ")}] 准备执行, 当前中间件数量: ${this.middlewares.length}`);
-        const waiting = (async function dispatch(index, middlewares, utils, transferArgs) {
+        const waiting = (async function dispatch(index, middlewares, context, transferArgs) {
             if (index > 0) {
                 logKeyId.pop();
             }
@@ -59,19 +59,19 @@ export class OnionCompose<TUtil, TMiddleware extends OnionMiddleware<TUtil>> {
             self._logger.debug(`[${logKeyId.join(" ")}] 获取到中间件 ${(mw as any).name}`);
             const next: NextMiddleware<TMiddleware> = function (...args) {
                 self._logger.debug(`[${logKeyId.join(" ")}] next被调用`);
-                let u = utils;
-                if (this && this.utils) {
-                    self._logger.debug(`[${logKeyId.join(" ")}] 使用this重置utils`);
-                    u = this.utils;
+                let newContext = context;
+                if (this && this.context) {
+                    self._logger.debug(`[${logKeyId.join(" ")}] 使用this重置context`);
+                    newContext = this.context;
                 }
-                return dispatch(index + 1, middlewares, u, args);
+                return dispatch(index + 1, middlewares, newContext, args);
             };
             next.middleware = middlewares[index + 1];
 
             self._logger.debug(`[${logKeyId.join(" ")}] 调用中间件的execute方法开始执行`);
-            const result = await mw.execute.apply(mw, [next, utils, ...(transferArgs || [])]);
+            const result = await mw.execute.apply(mw, [next, context, ...(transferArgs || [])]);
             return Promise.resolve(result);
-        })(0, this.middlewares, initialUtils, args);
+        })(0, this.middlewares, initialContext, args);
 
 
         return waiting.then(r => {
@@ -82,7 +82,7 @@ export class OnionCompose<TUtil, TMiddleware extends OnionMiddleware<TUtil>> {
             }
             return r;
         }).catch(err => {
-            this._logger.debug(`[${logKeyId.join(" ")}] 执行失败; ${err && err.message}`);
+            this._logger.error(`[${logKeyId.join(" ")}] 执行失败; ${err && err.message}`);
             throw err;
         });
     }

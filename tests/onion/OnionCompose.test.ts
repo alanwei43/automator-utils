@@ -103,7 +103,7 @@ test(`洋葱模型 重置util`, async () => {
         async execute(next, utils): Promise<any> {
             u.push(JSON.stringify(utils));
             const r = await next.apply({
-                utils: {
+                context: {
                     new: "m1"
                 }
             });

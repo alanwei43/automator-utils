@@ -1,7 +1,7 @@
-import { NextMiddleware, OnionMiddleware, UtilData, PlainObject } from "../index";
+import { NextMiddleware, OnionMiddleware, MiddlewareContext, PlainObject } from "../index";
 import { AutomatorJobConfig, AutomatorStepConfig, AutomatorConfig } from "./index";
 
-export type StepMiddlewareUtil = {} & UtilData
+export type StepMiddlewareContext = {} & MiddlewareContext
 
 export type StepMiddlewareCtor = {
     config: AutomatorConfig
@@ -10,10 +10,10 @@ export type StepMiddlewareCtor = {
     cmd: PlainObject
 }
 
-export abstract class StepMiddleware implements OnionMiddleware<StepMiddlewareUtil> {
+export abstract class StepMiddleware implements OnionMiddleware<StepMiddlewareContext> {
     public readonly ctor: StepMiddlewareCtor
     constructor(ctor: StepMiddlewareCtor) {
         this.ctor = ctor;
     }
-    abstract execute(next: NextMiddleware<StepMiddleware>, utils: StepMiddlewareUtil, ...args: any[]): Promise<any>
+    abstract execute(next: NextMiddleware<StepMiddleware>, context: StepMiddlewareContext, ...args: any[]): Promise<any>
 }

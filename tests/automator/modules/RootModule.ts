@@ -1,4 +1,4 @@
-import { NextMiddleware, UtilData, StepMiddleware, StepMiddlewareCtor } from "../../../src";
+import { NextMiddleware, StepMiddlewareContext, StepMiddleware, StepMiddlewareCtor } from "../../../src";
 
 export class RootModule extends StepMiddleware {
     public ctor: StepMiddlewareCtor & {
@@ -6,7 +6,7 @@ export class RootModule extends StepMiddleware {
             jobId: string
         }
     };
-    async execute(next: NextMiddleware<StepMiddleware>, utils: UtilData, ...args: any[]): Promise<any> {
+    async execute(next: NextMiddleware<StepMiddleware>, utils: StepMiddlewareContext, ...args: any[]): Promise<any> {
         return await next("Alan", "Wei");
     }
 }

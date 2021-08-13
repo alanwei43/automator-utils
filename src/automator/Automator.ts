@@ -1,9 +1,9 @@
 import fs from "fs";
 import path from "path";
 import { OnionCompose, readYamlConfig, ILogger, NullLogger } from "../index";
-import { AutomatorConfig, AutomatorStepConfig, StepMiddleware, StepMiddlewareCtor, StepMiddlewareUtil } from "./index";
+import { AutomatorConfig, AutomatorStepConfig, StepMiddleware, StepMiddlewareCtor, StepMiddlewareContext } from "./index";
 
-export type OnionComposeGetter = (cmd: any, utils?: StepMiddlewareUtil) => OnionCompose<StepMiddlewareUtil, StepMiddleware>
+export type OnionComposeGetter = (cmd: any, context?: StepMiddlewareContext) => OnionCompose<StepMiddlewareContext, StepMiddleware>
 
 export type AutomatorCtor = {
     /**
@@ -19,7 +19,7 @@ export type AutomatorCtor = {
 export type JobsData = {
     [key: string]: {
         stepCmd: any
-        utils?: StepMiddlewareUtil
+        context?: StepMiddlewareContext
         logger?: ILogger
     }
 }
@@ -110,7 +110,7 @@ export class Automator {
         return "/" + moduleId;
     }
 
-    public async getJobsByFile(configFilePath: string, jobsData: JobsData): Promise<Map<string, OnionCompose<StepMiddlewareUtil, StepMiddleware>>> {
+    public async getJobsByFile(configFilePath: string, jobsData: JobsData): Promise<Map<string, OnionCompose<StepMiddlewareContext, StepMiddleware>>> {
         const config = readYamlConfig<AutomatorConfig>(configFilePath);
         if (!config) {
             this.ctor.logger.error(`配置文件${configFilePath}读取失败`);
@@ -119,8 +119,8 @@ export class Automator {
         return this.getJobs(config, jobsData);
     }
 
-    public async getJobs(config: AutomatorConfig, jobsData: JobsData): Promise<Map<string, OnionCompose<StepMiddlewareUtil, StepMiddleware>>> {
-        const jobMaps: Map<string, OnionCompose<StepMiddlewareUtil, StepMiddleware>> = new Map();
+    public async getJobs(config: AutomatorConfig, jobsData: JobsData): Promise<Map<string, OnionCompose<StepMiddlewareContext, StepMiddleware>>> {
+        const jobMaps: Map<string, OnionCompose<StepMiddlewareContext, StepMiddleware>> = new Map();
         if (!Array.isArray(config.jobs)) {
             throw new Error(`[config: ${config.name}] jobs 必须是数组`);
         }
@@ -129,9 +129,9 @@ export class Automator {
             const logKey = [`job:${job.name}`];
             this.ctor.logger.debug(`${logKey.join(" ")} 设置job`);
 
-            const { stepCmd, utils, logger } = jobsData[job.name] || {};
+            const { stepCmd, context, logger } = jobsData[job.name] || {};
 
-            const compose = new OnionCompose<StepMiddlewareUtil, StepMiddleware>(utils, logger || new NullLogger());
+            const compose = new OnionCompose<StepMiddlewareContext, StepMiddleware>(context, logger || new NullLogger());
 
             if (!Array.isArray(job.steps)) {
                 throw new Error(`[config: ${config.name}, job: ${job.name}] steps 必须是数组`);
