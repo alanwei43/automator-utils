@@ -1,8 +1,7 @@
-import { RunJobInThreadStartConfig } from "./run-in-quickly";
 import { Automator, JobData } from "./Automator";
 import { StepMiddlewareContext, StepMiddleware } from "./StepMiddleware";
 import { OnionCompose, exposeMethodsToOtherThread } from "../index";
-
+import { IRunJobInThread, RunJobInThreadStartConfig } from "./IRunJobInThread";
 
 export class RunJobInThread implements IRunJobInThread {
     private runner: OnionCompose<StepMiddlewareContext, StepMiddleware>
@@ -35,12 +34,6 @@ export class RunJobInThread implements IRunJobInThread {
     exit() {
         process.exit(0)
     }
-}
-
-export interface IRunJobInThread {
-    start(config: RunJobInThreadStartConfig, cmd: any): Promise<any>
-    cancel(): void
-    exit(): void
 }
 
 exposeMethodsToOtherThread(process, new RunJobInThread());

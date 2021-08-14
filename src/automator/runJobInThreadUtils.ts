@@ -1,17 +1,7 @@
 import path from "path";
 import { invokeChildThreadMethods } from "../index";
-import { AutomatorConfig } from "./index";
-import { IRunJobInThread, RunJobInThread } from "./RunJobInThread";
-
-export type RunJobInThreadStartConfig = {
-    modulesDirs: Array<string>
-    fileLoggerName?: string
-    /**
-     * 配置文件路径或者配置信息
-     */
-    jobConfig: string | AutomatorConfig
-    jobActionName: string
-}
+import { IRunJobInThread } from "./IRunJobInThread";
+import { RunJobInThread } from "./RunJobInThread";
 
 /**
  * 在新线程运行作业
