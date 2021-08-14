@@ -1,16 +1,16 @@
+import { ChildProcess } from "child_process";
 import path from "path";
 import { invokeChildThreadMethods } from "../index";
 import { IRunJobInThread } from "./IRunJobInThread";
-import { RunJobInThread } from "./RunJobInThread";
 
 /**
  * 在新线程运行作业
  * @param config 配置
  */
-export function runJobInThread(): IRunJobInThread {
+export function runJobInThread(): IRunJobInThread & { thread: ChildProcess } {
     const extName = path.extname(__filename);
-    const threadModulePath = path.join(__dirname, `RunJobInThread${extName}`);
-    const { invoke, thread } = invokeChildThreadMethods<RunJobInThread>({
+    const threadModulePath = path.join(__dirname, `_RunJobInThread${extName}`);
+    const { invoke, thread } = invokeChildThreadMethods<IRunJobInThread>({
         module: threadModulePath
     });
 
@@ -18,5 +18,5 @@ export function runJobInThread(): IRunJobInThread {
         console.log(`runJobInThread: `, err);
     });
 
-    return invoke;
+    return { ...invoke, thread };
 }
