@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { OnionCompose, readYamlConfig, ILogger, NullLogger, IMap, BaseTypes, BaseType, IMapDeep } from "../index";
+import { OnionCompose, readYamlConfig, IMap, BaseTypes } from "../index";
 import { StepMiddleware, StepMiddlewareCtor, StepMiddlewareContext } from "./index";
 export class Automator {
     private readonly _middlewareModules: Map<string, () => StepMiddleware>
