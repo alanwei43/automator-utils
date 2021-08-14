@@ -1,4 +1,4 @@
-import { PlainObject, StringMap } from "../types";
+import { BaseTypeMap, StringMap } from "../types";
 import { RequestInit } from "node-fetch";
 
 export type FetchConfig = {
@@ -26,16 +26,16 @@ export type FetchConfig = {
 export interface IHttpClient {
     request(config: FetchConfig): Promise<Buffer>
 
-    getJson<T>(url: string, params?: PlainObject, headers?: StringMap): Promise<T>
-    postJson<T>(url: string, params?: PlainObject, body?: any, headers?: StringMap): Promise<T>
-    getText(url: string, params?: PlainObject, headers?: StringMap): Promise<string>
-    getJsonp<T>(url: string, params: PlainObject, callbackParamName: string, callbackParamValue?: string, headers?: StringMap): Promise<T>
-    postFormData<T>(url: string, params?: PlainObject, body?: PlainObject, headers?: StringMap): Promise<T>
+    getJson<T>(url: string, params?: BaseTypeMap, headers?: StringMap): Promise<T>
+    postJson<T>(url: string, params?: BaseTypeMap, body?: any, headers?: StringMap): Promise<T>
+    getText(url: string, params?: BaseTypeMap, headers?: StringMap): Promise<string>
+    getJsonp<T>(url: string, params: BaseTypeMap, callbackParamName: string, callbackParamValue?: string, headers?: StringMap): Promise<T>
+    postFormData<T>(url: string, params?: BaseTypeMap, body?: BaseTypeMap, headers?: StringMap): Promise<T>
     parseHtml(url: string): Promise<{ $: cheerio.Root, html: string }>
     saveAs(url: string, dest: string): Promise<boolean>
 }
 
-export function encodeParams(params: PlainObject): string {
+export function encodeParams(params: BaseTypeMap): string {
     if (!params) return "";
     return Object.keys(params)
         .map(key => ({
@@ -56,7 +56,7 @@ export function encodeParams(params: PlainObject): string {
  * @param url string
  * @param params URL查询参数
  */
-export function appendUrlParams(url: string, params: PlainObject): string {
+export function appendUrlParams(url: string, params: BaseTypeMap): string {
     if (!params) {
         return url;
     }

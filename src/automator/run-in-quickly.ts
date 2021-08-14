@@ -1,7 +1,7 @@
 import path from "path";
 import { invokeChildThreadMethods } from "../index";
 import { AutomatorConfig } from "./index";
-import { RunJobInThread } from "./RunJobInThread";
+import { IRunJobInThread, RunJobInThread } from "./RunJobInThread";
 
 export type RunJobInThreadStartConfig = {
     modulesDirs: Array<string>
@@ -11,11 +11,6 @@ export type RunJobInThreadStartConfig = {
      */
     jobConfig: string | AutomatorConfig
     jobActionName: string
-}
-export interface IRunJobInThread {
-    start(config: RunJobInThreadStartConfig, cmd: any): Promise<any>
-    cancel(): void
-    exit(): void
 }
 
 /**

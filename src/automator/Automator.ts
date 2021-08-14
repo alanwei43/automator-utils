@@ -1,49 +1,30 @@
 import fs from "fs";
 import path from "path";
-import { OnionCompose, readYamlConfig, ILogger, NullLogger } from "../index";
-import { AutomatorConfig, AutomatorStepConfig, StepMiddleware, StepMiddlewareCtor, StepMiddlewareContext } from "./index";
-
-export type OnionComposeGetter = (cmd: any, context?: StepMiddlewareContext) => OnionCompose<StepMiddlewareContext, StepMiddleware>
-
-export type AutomatorCtor = {
-    /**
-     * 模块根目录
-     */
-    modulesRootDir: Array<string>
-    /**
-     * 模块文件过滤
-     */
-    moduleFilter?: (fileName: string) => boolean
-    logger: ILogger
-}
-export type JobsData = {
-    [key: string]: {
-        stepCmd: any
-        context?: StepMiddlewareContext
-        logger?: ILogger
-    }
-}
+import { OnionCompose, readYamlConfig, ILogger, NullLogger, IMap, BaseTypes, IMapDeep } from "../index";
+import { StepMiddleware, StepMiddlewareCtor, StepMiddlewareContext } from "./index";
 export class Automator {
     private readonly _middlewareModules: Map<string, () => StepMiddleware>
     private readonly _middlewareRequirePaths: Set<string>
 
-    constructor(private ctor: AutomatorCtor) {
+    constructor(private readonly ctor: AutomatorCtor) {
         this._middlewareModules = new Map();
         this._middlewareRequirePaths = new Set();
     }
 
+    /**
+     * 初始化指定目录下模块数据
+     * @param root 模块根目录
+     */
     private initDirModules(root: string) {
         if (!root || !fs.existsSync(root)) {
-            this.ctor.logger.warn(`${root} 目录不存在`);
-            this._middlewareModules.clear();
-            return;
+            throw new Error(`[initDirModules] ${root} 目录不存在`);
         }
 
         const thisExtName = path.extname(__filename);
         const filterModule = this.ctor.moduleFilter || (f => path.extname(f) === thisExtName);
         const self = this;
-        (function recursive(dir) {
-            self.ctor.logger.debug(`读取 ${dir} 目录下目录及文件`);
+        (function recursive(dir: string) {
+            // 读取 dir 目录下目录及文件
             fs.readdirSync(dir)
                 .map(child => ({
                     name: child,
@@ -55,13 +36,13 @@ export class Automator {
                     stat: fs.statSync(info.fullPath)
                 }))
                 .forEach(info => {
-                    self.ctor.logger.debug(`读取到 ${info.fullPath}`);
+                    // 读取到 info.fullPath 
                     if (info.stat.isFile() && filterModule(info.fullPath)) {
-                        self.ctor.logger.debug(`检测为JS模块文件, 执行require`);
+                        // 检测为JS模块文件, 执行require
                         const modules = require(info.fullPath);
 
                         if (modules && typeof modules === "object") {
-                            self.ctor.logger.debug(`检测到模块导出对象为object类型, 添加到模块路径`);
+                            // 检测到模块导出对象为object类型, 添加到模块路径
                             self._middlewareRequirePaths.add(info.fullPath);
 
                             Object.keys(modules)
@@ -73,32 +54,40 @@ export class Automator {
                                 }))
                                 .forEach(mod => {
                                     const moduleId = self.getModuleId(root, info.fullPath, mod.name);
-                                    self.ctor.logger.debug(`读取到模块: ${mod.name}, id 为: ${moduleId}`);
+                                    // 读取到模块: mod.name, id 为: moduleId
                                     self._middlewareModules.set(moduleId, mod.ctor)
                                 });
                         }
                     }
                     if (info.stat.isDirectory()) {
-                        self.ctor.logger.debug(`检测为目录, 递归该目录下文件`);
+                        // 检测为目录, 递归该目录下文件
                         recursive(info.fullPath);
                     }
                 });
         }).bind(this)(root);
     }
+    /**
+     * 刷新模块
+     * @param cleanCache 是否强制刷新(清空node require缓存)
+     */
     public refreshModules(cleanCache: boolean) {
-        this.ctor.logger.debug(`刷新模块`);
         if (cleanCache) {
             for (let p of this._middlewareRequirePaths) {
-                this.ctor.logger.debug(`删除模块缓存, 模块地址: ${p}`);
+                // 删除模块缓存
                 delete require.cache[p];
             }
         }
         for (let dir of this.ctor.modulesRootDir) {
-            this.ctor.logger.debug(`加载目录(${dir})下模块`);
+            // 加载目录下模块
             this.initDirModules(dir);
-            this.ctor.logger.debug(`目录(${dir})下模块加载完成`);
         }
     }
+    /**
+     * 获取模块id
+     * @param rootDir 模块根目录(用于计算模块相对路径)
+     * @param moduleFullPath 模块完整路径
+     * @param moduleName 模块名称
+     */
     private getModuleId(rootDir: string, moduleFullPath: string, moduleName: string): string {
         const moduleRelDir = path.relative(rootDir, path.dirname(moduleFullPath));
         const moduleTempId = `${moduleRelDir}/${moduleName}`;
@@ -110,70 +99,155 @@ export class Automator {
         return "/" + moduleId;
     }
 
-    public async getJobsByFile(configFilePath: string, jobsData: JobsData): Promise<Map<string, OnionCompose<StepMiddlewareContext, StepMiddleware>>> {
-        const config = readYamlConfig<AutomatorConfig>(configFilePath);
-        if (!config) {
-            this.ctor.logger.error(`配置文件${configFilePath}读取失败`);
-            return Promise.reject(new Error(`配置文件${configFilePath}读取失败`));
-        }
-        return this.getJobs(config, jobsData);
-    }
-
-    public async getJobs(config: AutomatorConfig, jobsData: JobsData): Promise<Map<string, OnionCompose<StepMiddlewareContext, StepMiddleware>>> {
-        const jobMaps: Map<string, OnionCompose<StepMiddlewareContext, StepMiddleware>> = new Map();
+    /**
+     * 获取特定作业
+     * @param config 包含所有作业的配置信息
+     * @param jobName 作业名称
+     * @param jobData 作业数据
+     */
+    public getJob(config: AutomatorConfig, jobName: string, jobData: JobData, continueNextJob?: boolean): OnionCompose<StepMiddlewareContext, StepMiddleware> {
         if (!Array.isArray(config.jobs)) {
             throw new Error(`[config: ${config.name}] jobs 必须是数组`);
         }
-        this.ctor.logger.debug(`根据配置组装job, 配置为: ${JSON.stringify(config)}`);
+        // 开始根据配置组装job
         for (let job of config.jobs) {
-            const logKey = [`job:${job.name}`];
-            this.ctor.logger.debug(`${logKey.join(" ")} 设置job`);
-
-            const { stepCmd, context, logger } = jobsData[job.name] || {};
-
-            const compose = new OnionCompose<StepMiddlewareContext, StepMiddleware>(context, logger || new NullLogger());
-
+            if (job.name !== jobName) {
+                continue;
+            }
+            const compose = new OnionCompose<StepMiddlewareContext, StepMiddleware>(jobData.context);
             if (!Array.isArray(job.steps)) {
                 throw new Error(`[config: ${config.name}, job: ${job.name}] steps 必须是数组`);
             }
 
-            this.ctor.logger.debug(`[${logKey.join(" ")}] 共 ${job.steps.length} 个step`);
+            // 组建 step
             for (let stepNameOrObj of job.steps) {
                 const step: AutomatorStepConfig = typeof stepNameOrObj === "string" ? { id: stepNameOrObj } : stepNameOrObj;
 
                 const mw = this._middlewareModules.get(step.id);
                 if (!mw) {
-                    console.warn(`step ${step.id} 不存在`);
-                    this.ctor.logger.error(`[${logKey.join(" ")} ${step.id}] step不存在`);
+                    console.warn(`${job.name} 下的 step ${step.id} 不存在`);
                     continue;
                 }
-
-                this.ctor.logger.debug(`[${logKey.join(" ")} ${step.id}] step获取成功`);
 
                 const ctor: StepMiddlewareCtor = {
                     config: config,
                     job: job,
                     step: step,
-                    cmd: stepCmd
+                    cmd: jobData.stepCmd
                 };
                 const instance: StepMiddleware = Reflect.construct(mw, [ctor]);
-
-                this.ctor.logger.debug(`[${logKey.join(" ")} ${step.id}] step实例化成功`);
                 compose.use(instance);
             }
 
-            this.ctor.logger.debug(`[${logKey.join(" ")}] compose组装完成`);
-
-            jobMaps.set(job.name, compose);
-        }
-        for (let job of config.jobs) {
-            if (typeof job.next === "string") {
-                const mainJob = jobMaps.get(job.name), nextJob = jobMaps.get(job.next);
-                this.ctor.logger.debug(`设置 ${job.name} 的 next job: ${job.next}`);
-                mainJob.updateNext(nextJob);
+            if (continueNextJob && job.next) {
+                /**
+                 * 如果继续查找配置的next job，而且当前job配置了next
+                 */
+                const nextJob = this.getJob(config, job.next, jobData, continueNextJob);
+                compose.updateNext(nextJob);
             }
+
+            return compose;
+        }
+        throw new Error(`${config.jobs.map(j => j.name).join(", ")} 找不到 ${jobName}`);
+    }
+    /**
+     * 根据配置文件获取job列表
+     * @param configFilePath ymal配置文件路径
+     * @param jobsData 作业数据
+     */
+    public getJobByFile(configFilePath: string, jobName: string, jobData: JobData): OnionCompose<StepMiddlewareContext, StepMiddleware> {
+        const config = readYamlConfig<AutomatorConfig>(configFilePath);
+        if (!config) {
+            throw new Error(`配置文件${configFilePath}读取失败`);
+        }
+        return this.getJob(config, jobName, jobData, true);
+    }
+    /**
+     * 根据配置文件获取job列表
+     * @param configFilePath ymal配置文件路径
+     * @param jobsData 作业数据
+     */
+    public getJobsByFile(configFilePath: string, jobsData: JobsData): Map<string, OnionCompose<StepMiddlewareContext, StepMiddleware>> {
+        const config = readYamlConfig<AutomatorConfig>(configFilePath);
+        if (!config) {
+            throw new Error(`配置文件${configFilePath}读取失败`);
+        }
+        return this.getJobs(config, jobsData);
+    }
+
+    /**
+     * 获取作业列表
+     * @param config 
+     * @param jobsData 
+     */
+    public getJobs(config: AutomatorConfig, jobsData: JobsData): Map<string, OnionCompose<StepMiddlewareContext, StepMiddleware>> {
+        const jobMaps: Map<string, OnionCompose<StepMiddlewareContext, StepMiddleware>> = new Map();
+        if (!Array.isArray(config.jobs)) {
+            throw new Error(`[config: ${config.name}] jobs 必须是数组`);
+        }
+        // 开始根据配置组装job
+        for (let job of config.jobs) {
+            const jobData = jobsData[job.name];
+            const compose = this.getJob(config, job.name, jobData, true)
+            jobMaps.set(job.name, compose);
         }
 
         return jobMaps;
     }
 }
+
+// export type OnionComposeGetter = (cmd: any, context?: StepMiddlewareContext) => OnionCompose<StepMiddlewareContext, StepMiddleware>
+
+export interface AutomatorCtor {
+    /**
+     * 模块根目录
+     */
+    modulesRootDir: Array<string>
+    /**
+     * 模块文件过滤
+     */
+    moduleFilter?(fileName: string): boolean
+}
+
+export type JobsData = {
+    [key: string]: JobData
+}
+export type JobData = {
+    /**
+     * step中间件的构造函数里的 cmd
+     */
+    stepCmd: any
+    /**
+     * step中间件的context
+     */
+    context?: StepMiddlewareContext
+}
+
+export type AutomatorConfig = {
+    name: string
+    /**
+     * 可以有多个jobs
+     */
+    jobs: Array<AutomatorJobConfig>
+} & IMapDeep<BaseTypes>
+
+
+export type AutomatorJobConfig = {
+    name: string
+    /**
+     * 当前job关联的step
+     */
+    steps: Array<AutomatorStepConfig | string>
+    /**
+     * 当前job执行完, 需要执行的下一个job
+     */
+    next?: string
+} & IMapDeep<BaseTypes>
+
+export type AutomatorStepConfig = {
+    /**
+     * step的id
+     */
+    id: string
+} & IMapDeep<BaseTypes>

@@ -1,30 +1,28 @@
-import { RunJobInThreadStartConfig, IRunJobInThread } from "./run-in-quickly";
-import { Automator, JobsData } from "./Automator";
-import { NullLogger, OnionCompose, StepMiddleware, MiddlewareContext, exposeMethodsToOtherThread, StepMiddlewareContext } from "../index";
+import { RunJobInThreadStartConfig } from "./run-in-quickly";
+import { Automator, JobData } from "./Automator";
+import { StepMiddlewareContext, StepMiddleware } from "./StepMiddleware";
+import { OnionCompose, exposeMethodsToOtherThread } from "../index";
 
 
 export class RunJobInThread implements IRunJobInThread {
-    private runner: OnionCompose<MiddlewareContext, StepMiddleware>
+    private runner: OnionCompose<StepMiddlewareContext, StepMiddleware>
 
     async start(config: RunJobInThreadStartConfig, cmd: any): Promise<any> {
         if (this.runner) {
-            console.log(`线程已经存在`);
+            console.log(`当前线程${process.pid}已经开始执行`);
             return;
         }
 
-        const automator = new Automator({
-            "logger": new NullLogger,
-            "modulesRootDir": config.modulesDirs
-        });
+        const automator = new Automator({ "modulesRootDir": config.modulesDirs });
         automator.refreshModules(false);
-        let jobs: Map<string, OnionCompose<StepMiddlewareContext, StepMiddleware>> = null;
-        const jobsData: JobsData = { [config.jobActionName]: { "stepCmd": cmd, "context": {} } };
+        let job: OnionCompose<StepMiddlewareContext, StepMiddleware> = null;
+        const jobData: JobData = { "stepCmd": cmd, "context": {} };
         if (typeof config.jobConfig === "string") {
-            jobs = await automator.getJobsByFile(config.jobConfig, jobsData);
+            job = automator.getJobByFile(config.jobConfig, config.jobActionName, jobData);
         } else {
-            jobs = await automator.getJobs(config.jobConfig, jobsData);
+            job = automator.getJob(config.jobConfig, config.jobActionName, jobData);
         }
-        this.runner = jobs.get(config.jobActionName);
+        this.runner = job;
         const result = await this.runner.run();
         return result;
     }
@@ -37,6 +35,12 @@ export class RunJobInThread implements IRunJobInThread {
     exit() {
         process.exit(0)
     }
+}
+
+export interface IRunJobInThread {
+    start(config: RunJobInThreadStartConfig, cmd: any): Promise<any>
+    cancel(): void
+    exit(): void
 }
 
 exposeMethodsToOtherThread(process, new RunJobInThread());

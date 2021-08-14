@@ -15,7 +15,7 @@
 ### 抽象模块
 
 * src/onion 洋葱模型实现
-* src/automator 基于yaml文件的自动化执行
+* src/automator 基于yaml文件的自动化执行实现
 
 
 ## 开发

@@ -1,19 +1,24 @@
-import { NextMiddleware, OnionMiddleware, MiddlewareContext, PlainObject } from "../index";
+import { NextMiddleware, OnionMiddleware, BaseTypeMap } from "../index";
 import { AutomatorJobConfig, AutomatorStepConfig, AutomatorConfig } from "./index";
+import { ILogger } from "../logger";
+import { IHttpClient } from "../network";
 
-export type StepMiddlewareContext = {} & MiddlewareContext
+/**
+ * Step中间件
+ */
+export abstract class StepMiddleware implements OnionMiddleware<StepMiddlewareContext> {
+    constructor(public readonly ctor: StepMiddlewareCtor) { }
+    abstract execute(next: NextMiddleware<StepMiddleware>, context: StepMiddlewareContext, ...args: any[]): Promise<any>
+}
+
+export type StepMiddlewareContext = {
+    http?: IHttpClient
+    logger?: ILogger
+} & Record<string, Record<string, string | number | boolean>>
 
 export type StepMiddlewareCtor = {
     config: AutomatorConfig
     job: AutomatorJobConfig
     step: AutomatorStepConfig
-    cmd: PlainObject
-}
-
-export abstract class StepMiddleware implements OnionMiddleware<StepMiddlewareContext> {
-    public readonly ctor: StepMiddlewareCtor
-    constructor(ctor: StepMiddlewareCtor) {
-        this.ctor = ctor;
-    }
-    abstract execute(next: NextMiddleware<StepMiddleware>, context: StepMiddlewareContext, ...args: any[]): Promise<any>
+    cmd: BaseTypeMap
 }
