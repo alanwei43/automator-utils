@@ -1,4 +1,5 @@
-import { PlainObject, OnionCompose, OnionMiddleware } from "../index";
+import { BaseType, IMapDeep } from "../../index";
+import { OnionCompose, OnionMiddleware } from "../OnionCompose";
 
 test("洋葱模型 忽略next", async () => {
     let count = 0;
@@ -58,9 +59,8 @@ test("洋葱模型 所有中间件顺序执行", async () => {
 });
 
 test(`洋葱模型 修改util正确传递`, async () => {
-    type Util = {} & PlainObject;
     const u = [];
-    const com = new OnionCompose<Util, OnionMiddleware<Util>>({});
+    const com = new OnionCompose<IMapDeep<BaseType>, OnionMiddleware<IMapDeep<BaseType>>>({});
     com.use({
         async execute(next, utils): Promise<any> {
             u.push(JSON.stringify(utils));
@@ -93,10 +93,9 @@ test(`洋葱模型 修改util正确传递`, async () => {
     expect(u[2]).toBe(`{"m1":1,"m2":2}`);
 });
 
-test(`洋葱模型 重置util`, async () => {
-    type Util = {} & PlainObject;
+test(`洋葱模型 重置context`, async () => {
     const u = [];
-    const com = new OnionCompose<Util, OnionMiddleware<Util>>({
+    const com = new OnionCompose<IMapDeep<BaseType>, OnionMiddleware<IMapDeep<BaseType>>>({
         origin: "hello"
     });
     com.use({

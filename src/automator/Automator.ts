@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { OnionCompose, readYamlConfig, ILogger, NullLogger, IMap, BaseTypes, IMapDeep } from "../index";
+import { OnionCompose, readYamlConfig, ILogger, NullLogger, IMap, BaseTypes, BaseType, IMapDeep } from "../index";
 import { StepMiddleware, StepMiddlewareCtor, StepMiddlewareContext } from "./index";
 export class Automator {
     private readonly _middlewareModules: Map<string, () => StepMiddleware>
@@ -230,7 +230,7 @@ export type AutomatorConfig = {
      * 可以有多个jobs
      */
     jobs: Array<AutomatorJobConfig>
-} & IMapDeep<BaseTypes>
+} & IMap<BaseTypes | Array<AutomatorJobConfig>>
 
 
 export type AutomatorJobConfig = {
@@ -243,11 +243,12 @@ export type AutomatorJobConfig = {
      * 当前job执行完, 需要执行的下一个job
      */
     next?: string
-} & IMapDeep<BaseTypes>
+} & IMap<BaseTypes | Array<AutomatorStepConfig | string>>
+
 
 export type AutomatorStepConfig = {
     /**
      * step的id
      */
     id: string
-} & IMapDeep<BaseTypes>
+} & IMap<BaseTypes>

@@ -1,4 +1,4 @@
-const AutomatorUtils = require("../../../dist/index");
+const AutomatorUtils = require("../../../../dist/index");
 
 const proxy = AutomatorUtils.proxyOtherThreadMethods(process, {});
 
@@ -17,6 +17,5 @@ AutomatorUtils.exposeMethodsToOtherThread(process, {
     }
 });
 setTimeout(() => {
-
     console.log("child-thread run");
 }, 50);

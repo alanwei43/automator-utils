@@ -1,17 +1,15 @@
 import path from "path";
-import { AutomatorConfig, Automator, AutomatorJobConfig, ConsoleLogger, ILogger, NullLogger, FileLogger } from "../index";
-
-const logger: ILogger = new FileLogger("automator-test");
+import { AutomatorStepConfig, AutomatorConfig, Automator, AutomatorJobConfig } from "../../index";
 
 test("自动化脚本 基于代码配置", async () => {
     const auto = new Automator({
         "modulesRootDir": [path.join(__dirname, "modules")],
         "moduleFilter": f => f.endsWith(".js") || f.endsWith(".ts"),
-        "logger": logger
     });
     auto.refreshModules(false);
-    const steps = [{
+    const steps: Array<AutomatorStepConfig | string> = [{
         "id": "/RootModule",
+        "hello": ["world"],
     }, "/share/ShareModule"];
     const job: AutomatorJobConfig = {
         "name": "action-1",
@@ -21,7 +19,7 @@ test("自动化脚本 基于代码配置", async () => {
         "name": "jack",
         "jobs": [job]
     };
-    const all = await auto.getJobs(config, {
+    const all = auto.getJobs(config, {
         "action-1": {
             stepCmd: {
                 map: (letter: string) => letter.toUpperCase()
@@ -38,10 +36,9 @@ test("自动化脚本 基于配置文件", async () => {
     const auto = new Automator({
         "modulesRootDir": [path.join(__dirname, "modules")],
         "moduleFilter": f => f.endsWith(".js") || f.endsWith(".ts"),
-        "logger": logger
     });
     auto.refreshModules(false);
-    const all = await auto.getJobsByFile(path.join(__dirname, "modules", "config.yml"), {
+    const all = auto.getJobsByFile(path.join(__dirname, "modules", "config.yml"), {
         "action-1": {
             stepCmd: {
                 map: (letter: string) => letter.toUpperCase()

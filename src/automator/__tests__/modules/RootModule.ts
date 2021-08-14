@@ -1,4 +1,4 @@
-import { NextMiddleware, StepMiddlewareContext, StepMiddleware, StepMiddlewareCtor } from "../../../src";
+import { NextMiddleware, StepMiddlewareContext, StepMiddleware, StepMiddlewareCtor } from "../../../index";
 
 export class RootModule extends StepMiddleware {
     public ctor: StepMiddlewareCtor & {

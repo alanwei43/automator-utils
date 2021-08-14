@@ -4,7 +4,7 @@
   "description": "动态更新代码，并根据配置文件以洋葱模型执行。",
   "main": "dist/index.js",
   "scripts": {
-    "test": "npm run build && jest",
+    "test": "npm run build && jest --coverage --config=jest.config.ts",
     "build": "tsc"
   },
   "repository": "git://github.com/alanwei43/automator-utils.git",
