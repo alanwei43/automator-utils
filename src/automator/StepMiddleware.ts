@@ -2,6 +2,7 @@ import { NextMiddleware, OnionMiddleware, BaseTypeMap } from "../index";
 import { AutomatorJobConfig, AutomatorStepConfig, AutomatorConfig } from "./index";
 import { ILogger } from "../logger";
 import { IHttpClient } from "../network";
+import { BaseTypes, IMapDeep } from "../types";
 
 /**
  * Step中间件
@@ -14,7 +15,7 @@ export abstract class StepMiddleware implements OnionMiddleware<StepMiddlewareCo
 export type StepMiddlewareContext = {
     http?: IHttpClient
     logger?: ILogger
-} & Record<string, Record<string, string | number | boolean>>
+} & IMapDeep<BaseTypes>
 
 export type StepMiddlewareCtor = {
     config: AutomatorConfig
