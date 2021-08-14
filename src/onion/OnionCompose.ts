@@ -43,7 +43,6 @@ export class OnionCompose<TContext, TMiddleware extends OnionMiddleware<TContext
 
         const self = this;
         const waiting = (async function dispatch(index, middlewares, context, transferArgs) {
-
             if (self.canceled) {
                 // 取消执行
                 return Promise.resolve();

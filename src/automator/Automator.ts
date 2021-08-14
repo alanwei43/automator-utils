@@ -135,7 +135,17 @@ export class Automator {
                     step: step,
                     cmd: jobData.stepCmd
                 };
-                const instance: StepMiddleware = Reflect.construct(mw, [ctor]);
+                let instance: StepMiddleware;
+                try {
+                    instance = Reflect.construct(mw, [ctor]);
+                } catch (err) {
+                    console.warn(`[config: ${config.name}, job: ${job.name}, step: ${step.id}] 初始化 ${mw.name} 发生异常`);
+                    continue;
+                }
+                if (typeof instance.execute !== "function") {
+                    console.warn(`[config: ${config.name}, job: ${job.name}, step: ${step.id}] ${mw.name}.execute 不是函数类型`);
+                    continue;
+                }
                 compose.use(instance);
             }
 
