@@ -9,7 +9,7 @@ import { BaseTypes, IMapDeep } from "../types";
  */
 export abstract class StepMiddleware implements OnionMiddleware<StepMiddlewareContext> {
     constructor(public readonly ctor: StepMiddlewareCtor) { }
-    abstract execute(next: NextMiddleware<StepMiddleware>, context: StepMiddlewareContext, ...args: any[]): Promise<any>
+    abstract execute(next: NextMiddleware<StepMiddleware>, ctx: StepMiddlewareContext, ...args: Array<any>): Promise<any>
 }
 
 export type StepMiddlewareContext = {

@@ -55,7 +55,7 @@ export class OnionCompose<TContext, TMiddleware extends OnionMiddleware<TContext
             }
             const currentMiddleware = middlewares[index]; // 当前待执行的中间件
             // 构造下一个中间件执行函数
-            const nextExecutableMiddleware: NextMiddleware<TMiddleware> = function (...args) {
+            const next: NextMiddleware<TMiddleware> = function (...args) {
                 // 开始执行下一个中间件
                 let newContext = context;
                 if (this && this.context) {
@@ -63,9 +63,10 @@ export class OnionCompose<TContext, TMiddleware extends OnionMiddleware<TContext
                 }
                 return dispatch(index + 1, middlewares, newContext, args);
             };
-            nextExecutableMiddleware.middleware = middlewares[index + 1];
+            next.prevMiddleware = middlewares[index - 1];
+            next.nextMiddlware = middlewares[index + 1];
 
-            const result = await currentMiddleware.execute.apply(currentMiddleware, [nextExecutableMiddleware, context, ...(transferArgs || [])]);
+            const result = await currentMiddleware.execute.apply(currentMiddleware, [next, context, ...(transferArgs || [])]);
             return Promise.resolve(result);
         })(0, this.middlewares, initialContext, args); // 从第一个中间件开始执行
 
@@ -96,7 +97,14 @@ export class OnionCompose<TContext, TMiddleware extends OnionMiddleware<TContext
 }
 
 export interface NextMiddleware<TMiddleware> {
-    middleware: TMiddleware
+    /**
+     * 上一个中间件
+     */
+    prevMiddleware?: TMiddleware
+    /**
+     * 下一个中间件(及next执行的那个中间件)
+     */
+    nextMiddlware: TMiddleware
     (...args: Array<any>): Promise<any>
 }
 export interface OnionMiddleware<TContext> {
