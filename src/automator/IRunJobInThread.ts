@@ -1,6 +1,6 @@
 import { AutomatorConfig } from "./Automator";
 
-export type RunJobInThreadStartConfig = {
+export interface RunJobInThreadStartConfig {
     modulesDirs: Array<string>
     fileLoggerName?: string
     /**

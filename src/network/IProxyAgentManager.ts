@@ -5,7 +5,7 @@ export interface IProxyAgentManager {
 }
 
 
-export type ProxyAgentResult = {
+export interface ProxyAgentResult {
     host: string
     port: number
     type: "sock5" | "http"

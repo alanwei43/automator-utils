@@ -45,7 +45,7 @@ export function invokeChildThreadMethods<T>(
   };
 }
 
-export type InvokeProxyOptions = {
+export interface InvokeProxyOptions {
   /**
    * 调用等待超时时间
    */

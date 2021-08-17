@@ -223,7 +223,7 @@ export interface AutomatorCtor {
 export type JobsData = {
     [key: string]: JobData
 }
-export type JobData = {
+export interface JobData {
     /**
      * step中间件的构造函数里的 cmd
      */
@@ -234,17 +234,25 @@ export type JobData = {
     context?: StepMiddlewareContext
 }
 
-export type AutomatorConfig = {
+export interface AutomatorConfig extends IMap<BaseTypes | Array<AutomatorJobConfig>> {
+    /**
+     * 当前配置名称
+     */
     name: string
+    desc?: string
     /**
      * 可以有多个jobs
      */
     jobs: Array<AutomatorJobConfig>
-} & IMap<BaseTypes | Array<AutomatorJobConfig>>
+}
 
 
-export type AutomatorJobConfig = {
+export interface AutomatorJobConfig extends IMap<BaseTypes | Array<AutomatorStepConfig | string>> {
+    /**
+     * 作业名称
+     */
     name: string
+    desc?: string
     /**
      * 当前job关联的step
      */
@@ -253,12 +261,12 @@ export type AutomatorJobConfig = {
      * 当前job执行完, 需要执行的下一个job
      */
     next?: string
-} & IMap<BaseTypes | Array<AutomatorStepConfig | string>>
+}
 
 
-export type AutomatorStepConfig = {
+export interface AutomatorStepConfig extends IMap<BaseTypes> {
     /**
      * step的id
      */
     id: string
-} & IMap<BaseTypes>
+}

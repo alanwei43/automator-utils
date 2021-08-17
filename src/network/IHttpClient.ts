@@ -1,7 +1,7 @@
 import { BaseTypeMap, StringMap } from "../types";
 import { RequestInit } from "node-fetch";
 
-export type FetchConfig = {
+export interface FetchConfig extends RequestInit {
     url: string
     retryCount?: number
     /**
@@ -21,7 +21,7 @@ export type FetchConfig = {
      * 禁用缓存模块 ICache
      */
     disableCache?: boolean
-} & RequestInit;
+};
 
 export interface IHttpClient {
     request(config: FetchConfig): Promise<Buffer>

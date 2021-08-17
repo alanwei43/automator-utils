@@ -12,12 +12,12 @@ export abstract class StepMiddleware implements OnionMiddleware<StepMiddlewareCo
     abstract execute(next: NextMiddleware<StepMiddleware>, ctx: StepMiddlewareContext, ...args: Array<any>): Promise<any>
 }
 
-export type StepMiddlewareContext = {
+export interface StepMiddlewareContext extends IMapDeep<BaseTypes | IHttpClient | ILogger> {
     http?: IHttpClient
     logger?: ILogger
-} & IMapDeep<BaseTypes>
+}
 
-export type StepMiddlewareCtor = {
+export interface StepMiddlewareCtor {
     config: AutomatorConfig
     job: AutomatorJobConfig
     step: AutomatorStepConfig

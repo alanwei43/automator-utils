@@ -8,9 +8,9 @@ import { HttpsProxyAgent } from 'https-proxy-agent';
 import { HttpProxyAgent } from 'http-proxy-agent';
 import { IProxyAgentManager } from "./index"
 
-export type HttpProxyInit = {
+export interface HttpProxyInit extends HttpClientInit {
     ProxyManager: IProxyAgentManager
-} & HttpClientInit
+}
 
 export class HttpProxyClient extends HttpClient {
     private _proxyManager: IProxyAgentManager

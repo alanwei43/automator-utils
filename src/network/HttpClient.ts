@@ -5,7 +5,7 @@ import { FetchConfig, AbsHttpClient } from './index';
 import fetch, { FetchError } from "node-fetch";
 import { FileLogger, ILogger, NullLogger } from '../logger';
 
-export type HttpClientInit = {
+export interface HttpClientInit {
     logger?: ILogger
     cache?: ICache
     waitMsPerRequest?: number
