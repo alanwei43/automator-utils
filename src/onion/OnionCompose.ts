@@ -42,16 +42,21 @@ export class OnionCompose<TContext, TMiddleware extends OnionMiddleware<TContext
         const initialContext: TContext = this.context === null || this.context === undefined ? Object.create({}) : this.context;
 
         const self = this;
-        const waiting = (async function dispatch(index, middlewares, context, transferArgs) {
+        const waiting = (async function dispatch(
+            index: number,
+            middlewares: Array<TMiddleware>,
+            context: TContext,
+            transferArgs: any[],
+        ): Promise<any> {
             if (self.canceled) {
                 // 取消执行
-                return Promise.resolve();
+                return;
             }
 
             if (index === middlewares.length) {
                 // 当前已经执行到了最后一个
                 self.finished = true;
-                return Promise.resolve(transferArgs); // TODO
+                return transferArgs;
             }
             const currentMiddleware = middlewares[index]; // 当前待执行的中间件
             // 构造下一个中间件执行函数
@@ -67,9 +72,8 @@ export class OnionCompose<TContext, TMiddleware extends OnionMiddleware<TContext
             next.nextMiddlware = middlewares[index + 1];
 
             const result = await currentMiddleware.execute.apply(currentMiddleware, [next, context, ...(transferArgs || [])]);
-            return Promise.resolve(result);
+            return result;
         })(0, this.middlewares, initialContext, args); // 从第一个中间件开始执行
-
 
         return waiting.then(r => {
             /**
@@ -91,7 +95,7 @@ export class OnionCompose<TContext, TMiddleware extends OnionMiddleware<TContext
     cancel() {
         this.canceled = true;
         if (this.nextCompose) {
-            this.nextCompose.cancel(); // TODO
+            this.nextCompose.cancel();
         }
     }
 }
