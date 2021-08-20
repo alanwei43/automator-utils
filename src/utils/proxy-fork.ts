@@ -34,7 +34,9 @@ export function invokeChildThreadMethods<T>(
 ): { invoke: T, thread: ChildProcess } {
   const cp: ChildProcess = fork(forkOpts.module, forkOpts.args, {
     cwd: process.cwd(),
-    stdio: "pipe"
+    stdio: "pipe",
+    env: process.env,
+    "execArgv": process.execArgv
   });
   cp.stdin.pipe(process.stdin);
   cp.stdout.pipe(process.stdout);
