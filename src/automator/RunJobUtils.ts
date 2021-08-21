@@ -7,11 +7,13 @@ import { IRunJobInThread } from "./IRunJobInThread";
  * 在新线程运行作业
  * @param config 配置
  */
-export function runJobInThread(): { invoke: IRunJobInThread, thread: ChildProcess } {
+export function runJobInThread(opts: RunJobInThreadOpts): { invoke: IRunJobInThread, thread: ChildProcess } {
     const extName = path.extname(__filename);
     const threadModulePath = path.join(__dirname, `_RunJobInThread${extName}`);
     const { invoke, thread } = invokeChildThreadMethods<IRunJobInThread>({
-        module: threadModulePath
+        module: threadModulePath,
+        cwd: opts.cwd,
+        env: opts.environments
     });
 
     thread.on("error", err => {
@@ -19,4 +21,9 @@ export function runJobInThread(): { invoke: IRunJobInThread, thread: ChildProces
     });
 
     return { invoke, thread };
+}
+
+export interface RunJobInThreadOpts {
+    cwd: string
+    environments: NodeJS.ProcessEnv
 }

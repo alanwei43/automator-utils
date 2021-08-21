@@ -29,18 +29,18 @@ interface MethodResult {
  * @param proxyOpts 
  */
 export function invokeChildThreadMethods<T>(
-  forkOpts: { module: string, args?: Array<string> },
+  forkOpts: {
+    module: string,
+    args?: Array<string>,
+    cwd?: string,
+    env?: NodeJS.ProcessEnv
+  },
   proxyOpts?: InvokeProxyOptions
 ): { invoke: T, thread: ChildProcess } {
   const cp: ChildProcess = fork(forkOpts.module, forkOpts.args, {
-    cwd: process.cwd(),
-    stdio: "pipe",
-    env: process.env,
-    "execArgv": process.execArgv
+    cwd: forkOpts.cwd || process.cwd(),
+    env: forkOpts.env || process.env
   });
-  cp.stdin.pipe(process.stdin);
-  cp.stdout.pipe(process.stdout);
-  cp.stderr.pipe(process.stderr);
   return {
     invoke: proxyOtherThreadMethods(cp, proxyOpts || {}),
     thread: cp
