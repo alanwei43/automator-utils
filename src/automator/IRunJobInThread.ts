@@ -5,7 +5,6 @@ export interface RunJobInThreadStartConfig {
      * 模块路径
      */
     modulesDirs: Array<string>
-    fileLoggerName?: string
     /**
      * 配置文件路径或者配置信息
      */
