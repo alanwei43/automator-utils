@@ -1,4 +1,4 @@
-import { ChildProcess } from "child_process";
+import { ChildProcess, StdioOptions } from "child_process";
 import path from "path";
 import { invokeChildThreadMethods } from "../index";
 import { IRunJobInThread } from "./IRunJobInThread";
@@ -13,7 +13,8 @@ export function runJobInThread(opts: RunJobInThreadOpts): { invoke: IRunJobInThr
     const { invoke, thread } = invokeChildThreadMethods<IRunJobInThread>({
         module: threadModulePath,
         cwd: opts.cwd,
-        env: opts.environments
+        env: opts.env,
+        stdio: opts.stdio
     });
 
     thread.on("error", err => {
@@ -25,5 +26,6 @@ export function runJobInThread(opts: RunJobInThreadOpts): { invoke: IRunJobInThr
 
 export interface RunJobInThreadOpts {
     cwd: string
-    environments: NodeJS.ProcessEnv
+    env?: NodeJS.ProcessEnv
+    stdio?: StdioOptions
 }
