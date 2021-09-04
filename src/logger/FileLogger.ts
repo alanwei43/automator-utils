@@ -55,7 +55,7 @@ export class FileLogger implements ILogger {
         return this.write("error", args);
     }
     getLogFilePath(level: LogLevel) {
-        return path.join(this.dir, `${this.options.splitByDay ? new Date().toISOString().split("T")[0] : ""}${this.name}.${level}.log`);
+        return path.join(this.dir, `${this.options.splitByDay ? (new Date().toISOString().split("T")[0] + "-") : ""}${this.name}.${level}.log`);
     }
     parseLines<T>(level: LogLevel): Array<T> {
         const filePath = this.getLogFilePath(level);
