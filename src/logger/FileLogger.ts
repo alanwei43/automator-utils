@@ -8,13 +8,13 @@ export class FileLogger implements ILogger {
     private readonly dir: string
     constructor(
         name: string,
-        dest?: string,
         private readonly options: {
+            dest?: string,
             splitByDay?: boolean,
             async?: boolean
         } = {}) {
         this.name = name;
-        this.dir = dest || path.join(process.cwd(), "logs");
+        this.dir = this.options.dest || path.join(process.cwd(), "logs");
         this.checkDir();
     }
     private checkDir() {
