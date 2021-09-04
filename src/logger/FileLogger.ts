@@ -6,8 +6,13 @@ import { ILogger, LogLevel } from "./ILogger";
 export class FileLogger implements ILogger {
     private readonly name: string
     private readonly dir: string
-    private count: number = 0
-    constructor(name: string, dest?: string, private readonly enableCount?: boolean) {
+    constructor(
+        name: string,
+        dest?: string,
+        private readonly options: {
+            splitByDay?: boolean,
+            async?: boolean
+        } = {}) {
         this.name = name;
         this.dir = dest || path.join(process.cwd(), "logs");
         this.checkDir();
@@ -18,19 +23,25 @@ export class FileLogger implements ILogger {
         }
     }
     private write(level: LogLevel, ...args: Array<any>) {
-        if (this.enableCount && this.count >= Number.MAX_SAFE_INTEGER) {
-            this.count = 0;
-        }
         const filePath = this.getLogFilePath(level);
-        args.unshift(`[${this.enableCount ? ++this.count + " " : ""}${new Date().toLocaleString()}]`);
+        args.unshift(`[${new Date().toLocaleString()}]`);
         args.push("\n");
         try {
-            fs.appendFileSync(filePath, args.join(" "), {
-                encoding: "utf8"
-            });
+            if (this.options.async) {
+                fs.appendFile(filePath, args.join(" "), {
+                    encoding: "utf-8"
+                }, (err) => {
+                    if (err) {
+                        console.warn(`write file(${filePath}) failed: `, err);
+                    }
+                });
+            } else {
+                fs.appendFileSync(filePath, args.join(" "), {
+                    encoding: "utf-8"
+                });
+            }
         } catch (err) {
             console.warn(`write file(${filePath}) failed: `, err);
-            this.checkDir();
         }
         return `[${new Date().toLocaleString()} ${level}] ${args.join(" ")}`;
     }
@@ -44,7 +55,7 @@ export class FileLogger implements ILogger {
         return this.write("error", args);
     }
     getLogFilePath(level: LogLevel) {
-        return path.join(this.dir, `${this.name}.${level}.log`);
+        return path.join(this.dir, `${this.options.splitByDay ? new Date().toISOString().split("T")[0] : ""}${this.name}.${level}.log`);
     }
     parseLines<T>(level: LogLevel): Array<T> {
         const filePath = this.getLogFilePath(level);
