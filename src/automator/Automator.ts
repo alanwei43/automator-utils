@@ -109,6 +109,10 @@ export class Automator {
         if (!Array.isArray(config.jobs)) {
             throw new Error(`[config: ${config.name}] jobs 必须是数组`);
         }
+        if (!jobName) {
+            throw new Error(`jobName 不能为空`);
+        }
+
         // 开始根据配置组装job
         for (let job of config.jobs) {
             if (job.name !== jobName) {
@@ -159,7 +163,7 @@ export class Automator {
 
             return compose;
         }
-        throw new Error(`${config.jobs.map(j => j.name).join(", ")} 找不到 ${jobName}`);
+        throw new Error(`找不到作业 ${jobName}(可用作业列表: ${config.jobs.map(j => j.name).join(", ")})`);
     }
     /**
      * 根据配置文件获取job列表
