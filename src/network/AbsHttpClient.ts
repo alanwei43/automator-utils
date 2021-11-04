@@ -149,10 +149,11 @@ return ${text};
         }
     }
 
-    async parseHtml(url: string): Promise<{ $: cheerio.Root, html: string }> {
+    async parseHtml(url: string, params?: BaseTypeMap, headers?: StringMap): Promise<{ $: cheerio.Root, html: string }> {
         const buffer = await this.request({
-            url: url,
-            method: "GET"
+            url: appendUrlParams(url, params),
+            method: "GET",
+            headers: headers,
         });
         if (!buffer) {
             return null;
@@ -163,10 +164,11 @@ return ${text};
             html: html
         };
     }
-    async saveAs(url: string, dest: string): Promise<boolean> {
+    async saveAs(url: string, dest: string, params?: BaseTypeMap, headers?: StringMap): Promise<boolean> {
         const buffer = await this.request({
-            url: url,
-            method: "GET"
+            url: appendUrlParams(url, params),
+            method: "GET",
+            headers: headers
         });
         if (!buffer) {
             return false;
