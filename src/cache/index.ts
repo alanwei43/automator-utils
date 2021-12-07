@@ -1,3 +1,4 @@
-export { ICache } from "./ICache";
+export * from "./ICache";
 export { FileCache } from "./FileCache";
 export { NullCache } from "./NullCache";
+

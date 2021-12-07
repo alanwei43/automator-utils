@@ -5,3 +5,4 @@ src/
 tasks/
 install.sh
 jest.config.ts
+.DS_Store
