@@ -1,4 +1,4 @@
-import { ICache } from "./ICache";
+import { ICache, UpdateCacheResult } from "./ICache";
 import fs from "fs";
 import path from "path";
 import { promisify } from "util";
@@ -43,7 +43,7 @@ export class FileCache implements ICache {
         this._logger.debug(`返回key为${key}的缓存, 内容长度为: ${fileContent.length}`);
         return fileContent;
     }
-    async updateCache(key: string, data: Buffer): Promise<void> {
+    async updateCache(key: string, data: Buffer): Promise<UpdateCacheResult> {
         this._logger.debug(`设置key为${key}的缓存, 内容长度为: ${data.length}`);
         const fp = this.getFilePath(key);
         if (!fs.existsSync(fp.fileDir)) {
@@ -53,6 +53,9 @@ export class FileCache implements ICache {
             });
         }
         await promisify(fs.writeFile)(fp.filePath, data);
-        this._logger.debug(`key为${key}的缓存写入到${fp.filePath}成功`);
+        this._logger.debug(`key为${key}, hash为${fp.hash} 的缓存写入到${fp.filePath}成功`);
+        return {
+            keyHash: fp.hash
+        };
     }
 }
