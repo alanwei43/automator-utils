@@ -18,8 +18,20 @@ export interface StepMiddlewareContext extends IMapDeep<any> {
 }
 
 export interface StepMiddlewareCtor {
+    /**
+     * 全部配置信息
+     */
     config: AutomatorConfig
+    /**
+     * 当前Job配置信息
+     */
     job: AutomatorJobConfig
+    /**
+     * 当前步骤配置信息
+     */
     step: AutomatorStepConfig
+    /**
+     * 启动时传入的参数信息
+     */
     cmd: BaseTypeMap
 }
