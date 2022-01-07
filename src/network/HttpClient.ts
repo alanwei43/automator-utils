@@ -34,7 +34,6 @@ export class HttpClient extends AbsHttpClient {
     }
     async request(reqConfig: FetchConfig): Promise<Buffer> {
         const key = [reqConfig.method, reqConfig.url, reqConfig.body].filter(part => typeof part === "string").join(",");
-        this.logger.debug(`HTTP请求的Cache Id: ${key}`);
         if (this.ctorConfig.cache && !reqConfig.disableCache) {
             const data = await this.ctorConfig.cache.getCache(key);
             if (data && data.length) {
@@ -61,19 +60,14 @@ export class HttpClient extends AbsHttpClient {
             this.logger.debug(`请求前等待 ${waitTime}ms`);
             await wait(waitTime);
         }
-        this.logger.debug(`执行请求前处理`);
         await this.onRequestBefore(reqConfig);
         try {
-            this.logger.debug(`开始发起请求: ${reqConfig.url}`);
             const response = await fetch(reqConfig.url, reqConfig);
-            this.logger.debug(`读取响应buffer`);
             const buf = await response.buffer();
             this.logger.debug(`响应buffer长度: ${buf && buf.length}`);
             if (buf && buf.length > 0) {
                 if (this.ctorConfig.cache) {
-                    this.ctorConfig.cache.updateCache(key, buf).then(cResult => {
-                        this.logger.debug(`cache hash: ${cResult.keyHash}, key: ${key}`);
-                    });
+                    this.ctorConfig.cache.updateCache(key, buf);
                 }
             } else {
                 throw new FetchError(`响应内容为空`, "response-body-empty")
