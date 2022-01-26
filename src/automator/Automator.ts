@@ -143,8 +143,8 @@ export class Automator {
                 try {
                     instance = Reflect.construct(mw, [ctor]);
                 } catch (err) {
-                    console.warn(`[config: ${config.name}, job: ${job.name}, step: ${step.id}] 初始化 ${mw.name} 发生异常`);
-                    continue;
+                    console.warn(`[config: ${config.name}, job: ${job.name}, step: ${step.id}] 初始化 ${mw.name} 发生异常: ${err && err.message}`);
+                    throw err;
                 }
                 if (typeof instance.execute !== "function") {
                     console.warn(`[config: ${config.name}, job: ${job.name}, step: ${step.id}] ${mw.name}.execute 不是函数类型`);
