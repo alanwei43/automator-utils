@@ -71,8 +71,13 @@ export class OnionCompose<TContext, TMiddleware extends OnionMiddleware<TContext
             next.prevMiddleware = middlewares[index - 1];
             next.nextMiddlware = middlewares[index + 1];
 
-            const result = await currentMiddleware.execute.apply(currentMiddleware, [next, context, ...(transferArgs || [])]);
-            return result;
+            try {
+                const result = await currentMiddleware.execute.apply(currentMiddleware, [next, context, ...(transferArgs || [])]);
+                return result;
+            } catch (err) {
+                console.warn(`[${new Date().toLocaleString()}] 调用第${index + 1}个中间件(${currentMiddleware})的 execute 方法发生异常: `, err);
+                throw err;
+            }
         })(0, this.middlewares, initialContext, args); // 从第一个中间件开始执行
 
         return waiting.then(r => {
