@@ -12,4 +12,9 @@
     // "src/**/*.js": true,
     // "src/types/whistle-extend.d.ts": false
   },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/logs/**": true,
+    "**/coverage/**": true,
+  }
 }
