@@ -5,21 +5,24 @@ import { ILocker } from "./ILocker";
 import { hash, wait } from "../utils/index";
 
 export class FileLocker implements ILocker {
-  private dir: string
-  private readonly waitMs: number = 1000;
+  private _dir: string
+  private readonly _waitMs: number = 1000;
+  private readonly _params: FileLockerParams
 
-  constructor(dir?: string) {
-    this.dir = typeof dir === "string" && dir.length > 0 ? dir : os.tmpdir();
-    if (!fs.existsSync(this.dir)) {
-      fs.mkdirSync(this.dir);
+  constructor(params: FileLockerParams) {
+    this._params = params;
+    this._dir = typeof params.dir === "string" && params.dir.length > 0 ? params.dir : os.tmpdir();
+    if (!fs.existsSync(this._dir)) {
+      fs.mkdirSync(this._dir);
     }
   }
 
   private getLockFileFullPath(key: string): string {
     const fileName = hash(key);
-    const lockFileFullPath = path.join(this.dir, fileName + ".lock");
+    const lockFileFullPath = path.join(this._dir, `${this._params.fileNamePrefix || "file"}-${fileName}.lock`);
     return lockFileFullPath;
   }
+
   unLock(key: string): void {
     const p = this.getLockFileFullPath(key);
     if (fs.existsSync(p)) {
@@ -42,7 +45,7 @@ export class FileLocker implements ILocker {
       return false;
     }
 
-    await wait(this.waitMs);
+    await wait(this._waitMs);
 
     const fileContent: string = fs.readFileSync(lockFileFullPath, { encoding: "utf-8" });
     if (fileContent !== random) {
@@ -51,4 +54,9 @@ export class FileLocker implements ILocker {
 
     return true;
   }
+}
+
+export type FileLockerParams = {
+  dir?: string
+  fileNamePrefix?: string
 }
