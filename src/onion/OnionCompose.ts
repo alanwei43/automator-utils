@@ -88,8 +88,12 @@ export class OnionCompose<TContext, TMiddleware extends OnionMiddleware<TContext
                 /**
                  * 如果有下一个Compose，继续执行下一个Compose
                  */
+                console.log(`[PID:${process.pid}] 当前job执行完成, 继续执行下一个job`);
                 return this.nextCompose.run(...args);
             }
+            return r;
+        }).then(r => {
+            console.log(`[PID:${process.pid}] 所有job执行完成`);
             return r;
         });
     }
