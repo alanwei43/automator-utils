@@ -1,4 +1,4 @@
-import { ChildProcess, fork, StdioOptions } from "child_process";
+import { ChildProcess, fork, ForkOptions, StdioOptions } from "child_process";
 import { getRandomStr } from "./index";
 
 /**
@@ -32,17 +32,20 @@ export function invokeChildThreadMethods<T>(
   forkOpts: {
     module: string,
     args?: Array<string>,
-    cwd?: string,
-    env?: NodeJS.ProcessEnv,
-    stdio?: StdioOptions
+    options?: ForkOptions
   },
   proxyOpts?: InvokeProxyOptions
 ): { invoke: T, thread: ChildProcess } {
-  const cp: ChildProcess = fork(forkOpts.module, forkOpts.args, {
-    cwd: forkOpts.cwd || process.cwd(),
-    env: forkOpts.env || process.env,
-    "stdio": forkOpts.stdio
-  });
+  if (!forkOpts.options) {
+    forkOpts.options = {};
+  }
+  if (!forkOpts.options.cwd) {
+    forkOpts.options.cwd = process.cwd();
+  }
+  if (!forkOpts.options.env) {
+    forkOpts.options.env = process.env;
+  }
+  const cp: ChildProcess = fork(forkOpts.module, forkOpts.args, forkOpts.options);
   return {
     invoke: proxyOtherThreadMethods(cp, proxyOpts || {}),
     thread: cp

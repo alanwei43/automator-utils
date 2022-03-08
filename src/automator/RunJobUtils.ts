@@ -1,4 +1,4 @@
-import { ChildProcess, StdioOptions } from "child_process";
+import { ChildProcess, ForkOptions, StdioOptions } from "child_process";
 import path from "path";
 import { invokeChildThreadMethods } from "../index";
 import { IRunJobInThread } from "./IRunJobInThread";
@@ -7,14 +7,12 @@ import { IRunJobInThread } from "./IRunJobInThread";
  * 在新线程运行作业
  * @param config 配置
  */
-export function runJobInThread(opts: RunJobInThreadOpts): { invoke: IRunJobInThread, thread: ChildProcess } {
+export function runJobInThread(opts: ForkOptions): { invoke: IRunJobInThread, thread: ChildProcess } {
     const extName = path.extname(__filename);
     const threadModulePath = path.join(__dirname, `_RunJobInThread${extName}`);
     const { invoke, thread } = invokeChildThreadMethods<IRunJobInThread>({
         module: threadModulePath,
-        cwd: opts.cwd,
-        env: opts.env,
-        stdio: opts.stdio
+        options: opts
     });
 
     thread.on("error", err => {
@@ -22,10 +20,4 @@ export function runJobInThread(opts: RunJobInThreadOpts): { invoke: IRunJobInThr
     });
 
     return { invoke, thread };
-}
-
-export interface RunJobInThreadOpts {
-    cwd: string
-    env?: NodeJS.ProcessEnv
-    stdio?: StdioOptions
 }
