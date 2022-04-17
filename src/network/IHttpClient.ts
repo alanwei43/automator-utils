@@ -31,7 +31,7 @@ export interface IHttpClient {
     getText(url: string, params?: BaseTypeMap, headers?: StringMap): Promise<string>
     getJsonp<T>(url: string, params: BaseTypeMap, callbackParamName: string, callbackParamValue?: string, headers?: StringMap): Promise<T>
     postFormData<T>(url: string, params?: BaseTypeMap, body?: BaseTypeMap, headers?: StringMap): Promise<T>
-    parseHtml(url: string): Promise<{ $: cheerio.Root, html: string }>
+    parseHtml(url: string, params?: BaseTypeMap, headers?: StringMap): Promise<{ $: cheerio.Root, html: string }>
     saveAs(url: string, dest: string): Promise<boolean>
 }
 

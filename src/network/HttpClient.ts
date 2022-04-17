@@ -27,7 +27,7 @@ export class HttpClient extends AbsHttpClient {
 
         this.ctorConfig = {
             /** 默认配置 */
-            userAgents: [],
+            userAgents: init.userAgents || [],
             /** 用户配置 */
             ...init,
         };
@@ -44,7 +44,7 @@ export class HttpClient extends AbsHttpClient {
         if (reqConfig.headers === null || reqConfig.headers === undefined) {
             reqConfig.headers = {};
         }
-        if (typeof reqConfig.headers["user-agent"] !== "string" && Array.isArray(this.ctorConfig.userAgents)) {
+        if (typeof reqConfig.headers["user-agent"] !== "string" && Array.isArray(this.ctorConfig.userAgents) && this.ctorConfig.userAgents.length > 0) {
             reqConfig.headers["user-agent"] = this.ctorConfig.userAgents[getRandomInt(0, this.ctorConfig.userAgents.length)];
         }
         if (typeof reqConfig.timeout !== "number" && typeof this.ctorConfig.timeoutMs === "number") {
